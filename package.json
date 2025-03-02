@@ -16,6 +16,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4"
+    "@types/three": "^0.174.0",
+    "tailwindcss": "^4",
+    "typescript": "^5.8.2"
   }
 }

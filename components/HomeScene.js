@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { useEffect } from 'react';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
+import getStarfield from './getStarfield.js';
 
 const HomeScene = () => {
     useEffect(() =>{
@@ -16,7 +17,14 @@ const HomeScene = () => {
         //This puts it int HTML format 
         document.body.appendChild( renderer.domElement)
 
-        camera.position.set(-5, 0, 7);
+        camera.position.set(5, 0, 20);
+
+        //Adding stars 
+        const star = getStarfield({numStars: 500});
+        scene.add(star);
+
+        
+
         //Temparary cube 
         const geometry = new THREE.BoxGeometry( 1, 1, 1 );
         const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
@@ -40,6 +48,7 @@ const HomeScene = () => {
 
 
         function animate() {
+            requestAnimationFrame(animate);
             renderer.render(scene, camera);
             controls.update();
             
