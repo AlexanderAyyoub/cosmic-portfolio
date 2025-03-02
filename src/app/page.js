@@ -1,6 +1,11 @@
-import Image from "next/image";
+import HomeScene from "components/HomeScene";
 
+export default function Home(){
+  return(
 
-export default function Home() {
-  
+    <main>
+      <HomeScene /> 
+    </main>
+
+  );
 }
