@@ -2,10 +2,11 @@
 import * as THREE from 'three';
 import { useEffect } from 'react';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
-import { AmbientLight } from 'three';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
+import Stats from 'three/examples/jsm/libs/stats.module'
 import getStarfield from './getStarfield.js';
-import setSkySphere from "./setSkySphere.js";
 
 const HomeScene = () => {
     useEffect(() =>{
@@ -17,31 +18,40 @@ const HomeScene = () => {
 
 
         renderer.setSize(windowW, windowH);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFShadowMap;
+
         //This puts it int HTML format 
         document.body.appendChild( renderer.domElement)
+        camera.position.set(0, 0, 0);
+        
+        const light = new THREE.AmbientLight(0x404040);
+        light.castShadow = true;
+        light.intensity = 10;
+        scene.add(light);
+        
 
-        camera.position.set(5, 0, 5);
+        //FPS counter
+        const stats = Stats()
+        document.body.appendChild(stats.dom)
 
         //Adding stars 
         const star = getStarfield({numStars: 500});
         scene.add(star);
 
         //Trying hdri 
-        const ambientLight = new AmbientLight(0xffffff, 1);
-        scene.add(ambientLight);
-        setSkySphere(scene, '/textures/spaceHDRI.hdr');
+        const hdriLoader = new RGBELoader()
+        hdriLoader.load('/textures/spaceHDRI.hdr', function (texture) {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.background = texture;
+        scene.environment = texture;
+        });
 
-        //Temparary cube 
-        const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-        const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-        const cube = new THREE.Mesh( geometry, material );
-        scene.add( cube );
 
         //Adding camera controls 
         const controls = new PointerLockControls( camera, document.body);
         controls.pointerSpeed = 0.5;
      
-
         document.addEventListener('mousedown', () => {
             controls.lock();
         });
@@ -53,14 +63,22 @@ const HomeScene = () => {
           
 
 
+        //Adding gltf File 
+        const loader = new GLTFLoader();
+        loader.load('/models/test.glb', (gltf) => {
+            const mesh = gltf.scene;
+            scene.add(mesh);
+            mesh.position.set(1,0,-2);
+            
+        });
+
         function animate() {
-            requestAnimationFrame(animate);
             renderer.render(scene, camera);
             controls.update();
+            stats.update();
             
         }
         renderer.setAnimationLoop(animate);
-
         animate();
 
     })
