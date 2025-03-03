@@ -2,7 +2,10 @@
 import * as THREE from 'three';
 import { useEffect } from 'react';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
+import { AmbientLight } from 'three';
+
 import getStarfield from './getStarfield.js';
+import setSkySphere from "./setSkySphere.js";
 
 const HomeScene = () => {
     useEffect(() =>{
@@ -17,13 +20,16 @@ const HomeScene = () => {
         //This puts it int HTML format 
         document.body.appendChild( renderer.domElement)
 
-        camera.position.set(5, 0, 20);
+        camera.position.set(5, 0, 5);
 
         //Adding stars 
         const star = getStarfield({numStars: 500});
         scene.add(star);
 
-        
+        //Trying hdri 
+        const ambientLight = new AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+        setSkySphere(scene, '/textures/spaceHDRI.hdr');
 
         //Temparary cube 
         const geometry = new THREE.BoxGeometry( 1, 1, 1 );
