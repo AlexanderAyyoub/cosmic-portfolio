@@ -7,7 +7,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
-import projectStars from './project-stars.jsx';
 
 const HomeScene = ({stars}) => {
     useEffect(() =>{
