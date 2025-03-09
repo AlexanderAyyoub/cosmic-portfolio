@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { RenderPass } from 'three/examples/jsm/Addons.js';
+import { EffectComposer } from 'three/examples/jsm/Addons.js';
+import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
@@ -46,6 +49,9 @@ const HomeScene = ({stars}) => {
         scene.background = texture;
         scene.environment = texture;
         });
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 2;
 
 
         //Adding camera controls 
@@ -60,7 +66,20 @@ const HomeScene = ({stars}) => {
             controls.unlock();
         });
 
-          
+        //Adding scene to renderPass 
+        const renderPass = new RenderPass(scene,camera);
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderPass)
+
+        //Adding Bloom to renderPass
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(windowW,windowH), 1.6,0.1,0.1
+        );
+        composer.addPass(bloomPass);
+
+        bloomPass.strength = 1;
+        bloomPass.radius = 1;
+        bloomPass.threshold = 0.1;
 
 
         //Adding gltf File 
@@ -76,10 +95,10 @@ const HomeScene = ({stars}) => {
             renderer.render(scene, camera);
             controls.update();
             stats.update();
-
+            composer.render();
+            renderer.setAnimationLoop(animate);
             
         }
-        renderer.setAnimationLoop(animate);
         animate();
 
         
@@ -88,16 +107,15 @@ const HomeScene = ({stars}) => {
         if (stars && stars.length > 0) {
             stars.forEach(star => {
                 const geometry = new THREE.SphereGeometry();
-                // const material = new THREE.MeshBasicMaterial({ color: star.color }); Add color paramater at some point 
                 const material = new THREE.MeshStandardMaterial({
-                    color: new THREE.Color(0xFFFFFF),
-                    emissive: new THREE.Color(0xFFFFFF),
-                    emissiveIntensity: 0.8,
+                    color: new THREE.Color(0x0927e6),
+                    emissive: new THREE.Color(0x0927e6),
+                    emissiveIntensity: 5,
                 });
                 const starObject = new THREE.Mesh(geometry, material);
                 
                 starObject.position.set(star.xPosition, star.yPosition, star.zPosition);
-                console.log(star.xPosition);
+                starObject.scale.set(star.size,star.size,star.size);
                 scene.add(starObject);
             })
         }
