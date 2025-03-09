@@ -5,10 +5,11 @@ import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockCont
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-import Stats from 'three/examples/jsm/libs/stats.module'
+import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
+import projectStars from './project-stars.jsx';
 
-const HomeScene = () => {
+const HomeScene = ({stars}) => {
     useEffect(() =>{
         const windowW = window.innerWidth
         const windowH = window.innerHeight
@@ -26,7 +27,7 @@ const HomeScene = () => {
         camera.position.set(0, 0, 0);
         
         const light = new THREE.AmbientLight(0x404040);
-        light.castShadow = true;
+        // light.castShadow = true;
         light.intensity = 10;
         scene.add(light);
         
@@ -36,8 +37,8 @@ const HomeScene = () => {
         document.body.appendChild(stats.dom)
 
         //Adding stars 
-        const star = getStarfield({numStars: 500});
-        scene.add(star);
+        const starArray = getStarfield({numStars: 500});
+        scene.add(starArray);
 
         //Trying hdri 
         const hdriLoader = new RGBELoader()
@@ -64,24 +65,48 @@ const HomeScene = () => {
 
 
         //Adding gltf File 
-        const loader = new GLTFLoader();
-        loader.load('/models/test.glb', (gltf) => {
-            const mesh = gltf.scene;
-            scene.add(mesh);
-            mesh.position.set(1,0,-2);
+        // const loader = new GLTFLoader();
+        // loader.load('/models/test.glb', (gltf) => {
+        //     const mesh = gltf.scene;
+        //     scene.add(mesh);
+        //     mesh.position.set(1,0,-2);
             
-        });
+        // });
 
         function animate() {
             renderer.render(scene, camera);
             controls.update();
             stats.update();
+
             
         }
         renderer.setAnimationLoop(animate);
         animate();
 
+        
+
+        //POPULATING SCENE WITH PROJECT STARS 
+        if (stars && stars.length > 0) {
+            stars.forEach(star => {
+                const geometry = new THREE.SphereGeometry();
+                // const material = new THREE.MeshBasicMaterial({ color: star.color }); Add color paramater at some point 
+                const material = new THREE.MeshStandardMaterial({
+                    color: new THREE.Color(0xFFFFFF),
+                    emissive: new THREE.Color(0xFFFFFF),
+                    emissiveIntensity: 0.8,
+                });
+                const starObject = new THREE.Mesh(geometry, material);
+                
+                starObject.position.set(star.xPosition, star.yPosition, star.zPosition);
+                console.log(star.xPosition);
+                scene.add(starObject);
+            })
+        }
     })
+
+    return (
+        <div style={{ width: "100%", height: "100%" }}></div>
+      );
 };
 
 export default HomeScene;
