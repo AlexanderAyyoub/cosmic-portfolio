@@ -77,9 +77,9 @@ const HomeScene = ({stars}) => {
         );
         composer.addPass(bloomPass);
 
-        bloomPass.strength = 1;
-        bloomPass.radius = 1;
-        bloomPass.threshold = 0.1;
+        // bloomPass.strength = 1;
+        // bloomPass.radius = 5;
+        // bloomPass.threshold = 0.1;
 
 
         //Adding gltf File 
@@ -104,6 +104,8 @@ const HomeScene = ({stars}) => {
         
 
         //POPULATING SCENE WITH PROJECT STARS 
+        const allStarObjects = []
+
         if (stars && stars.length > 0) {
             stars.forEach(star => {
                 const geometry = new THREE.SphereGeometry();
@@ -117,8 +119,47 @@ const HomeScene = ({stars}) => {
                 starObject.position.set(star.xPosition, star.yPosition, star.zPosition);
                 starObject.scale.set(star.size,star.size,star.size);
                 scene.add(starObject);
+
+                starObject.userData.starID = star.starID;
+                starObject.userData.size = star.size;
+
+
+                allStarObjects.push(starObject);
             })
         }
+
+        //Setting up Raycasting 
+        const pointer = new THREE.Vector2();
+        const raycaster = new THREE.Raycaster();
+
+        const onMouseMove = (event) => {
+           
+            pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects(allStarObjects);
+
+            allStarObjects.forEach(star => {
+                const originalSize = star.userData.size;
+                star.scale.set(originalSize, originalSize, originalSize);
+            });
+
+            if(intersects.length > 0){
+
+                const intersectedStar = intersects[0].object;
+                const starId = intersectedStar.userData.starID; 
+                const starSize = intersectedStar.userData.size;
+                intersectedStar.scale.set(starSize + 1,starSize + 1,starSize+ 1);
+
+                console.log(`Intersected with star ID: ${starId}`);
+            };
+
+            
+            
+          };
+
+          window.addEventListener('mousemove', onMouseMove);
     })
 
     return (
