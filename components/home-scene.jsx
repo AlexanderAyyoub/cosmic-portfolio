@@ -77,7 +77,7 @@ const HomeScene = ({stars}) => {
         );
         composer.addPass(bloomPass);
 
-        // bloomPass.strength = 1;
+         bloomPass.strength = 3;
         // bloomPass.radius = 5;
         // bloomPass.threshold = 0.1;
 
@@ -90,16 +90,6 @@ const HomeScene = ({stars}) => {
         //     mesh.position.set(1,0,-2);
             
         // });
-
-        function animate() {
-            renderer.render(scene, camera);
-            controls.update();
-            stats.update();
-            composer.render();
-            renderer.setAnimationLoop(animate);
-            
-        }
-        animate();
 
         
 
@@ -131,6 +121,9 @@ const HomeScene = ({stars}) => {
         //Setting up Raycasting 
         const pointer = new THREE.Vector2();
         const raycaster = new THREE.Raycaster();
+        const scaleSpeed = 0.3;
+
+        
 
         const onMouseMove = (event) => {
            
@@ -142,7 +135,7 @@ const HomeScene = ({stars}) => {
 
             allStarObjects.forEach(star => {
                 const originalSize = star.userData.size;
-                star.scale.set(originalSize, originalSize, originalSize);
+                star.scale.lerp(new THREE.Vector3(originalSize, originalSize, originalSize), scaleSpeed);
             });
 
             if(intersects.length > 0){
@@ -150,7 +143,9 @@ const HomeScene = ({stars}) => {
                 const intersectedStar = intersects[0].object;
                 const starId = intersectedStar.userData.starID; 
                 const starSize = intersectedStar.userData.size;
-                intersectedStar.scale.set(starSize + 1,starSize + 1,starSize+ 1);
+                intersectedStar.userData.targetSize = starSize + 1; 
+
+                intersectedStar.scale.lerp(new THREE.Vector3(intersectedStar.userData.targetSize, intersectedStar.userData.targetSize, intersectedStar.userData.targetSize), scaleSpeed);
 
                 console.log(`Intersected with star ID: ${starId}`);
             };
@@ -160,6 +155,17 @@ const HomeScene = ({stars}) => {
           };
 
           window.addEventListener('mousemove', onMouseMove);
+
+
+          function animate() {
+            renderer.render(scene, camera);
+            controls.update();
+            stats.update();
+            composer.render();
+            renderer.setAnimationLoop(animate);
+            
+        }
+        animate();
     })
 
     return (
