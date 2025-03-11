@@ -77,10 +77,9 @@ const HomeScene = ({stars}) => {
         );
         composer.addPass(bloomPass);
 
-         bloomPass.strength = 3;
-        // bloomPass.radius = 5;
-        // bloomPass.threshold = 0.1;
-
+         bloomPass.strength = 1;
+         bloomPass.resolution = true;
+         bloomPass.threshold = .05;
 
         //Adding gltf File 
         // const loader = new GLTFLoader();
@@ -100,9 +99,9 @@ const HomeScene = ({stars}) => {
             stars.forEach(star => {
                 const geometry = new THREE.SphereGeometry();
                 const material = new THREE.MeshStandardMaterial({
-                    color: new THREE.Color(0x0927e6),
+                    color: new THREE.Color(0xffffff),
                     emissive: new THREE.Color(0x0927e6),
-                    emissiveIntensity: 5,
+                    emissiveIntensity: 4,
                 });
                 const starObject = new THREE.Mesh(geometry, material);
                 
@@ -150,11 +149,36 @@ const HomeScene = ({stars}) => {
                 console.log(`Intersected with star ID: ${starId}`);
             };
 
-            
-            
           };
 
           window.addEventListener('mousemove', onMouseMove);
+
+        //Making the stars twinkle 
+        allStarObjects.forEach(star => {
+            let increasing = Math.random() > 0.5; 
+            let intensity = THREE.MathUtils.randFloat(3, 5); // Lower intensity range
+        
+            const twinkle = () => {
+                if (!star.material) return; 
+        
+                if (increasing) {
+                    intensity += 0.2; // Faster increase
+                    if (intensity >= 5) increasing = false; // Lower max intensity
+                } else {
+                    intensity -= 0.2; // Faster decrease
+                    if (intensity <= 3) increasing = true; // Lower min intensity
+                }
+        
+                star.material.emissiveIntensity = intensity;
+        
+                setTimeout(twinkle, THREE.MathUtils.randInt(50, 150)); 
+            };
+        
+            twinkle(); 
+        });
+        
+        
+        
 
 
           function animate() {
