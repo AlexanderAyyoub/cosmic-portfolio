@@ -7,6 +7,9 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { RenderPass } from 'three/examples/jsm/Addons.js';
 import { EffectComposer } from 'three/examples/jsm/Addons.js';
 import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { TTFLoader } from 'three/examples/jsm/Addons.js';
+import { FontLoader } from 'three/examples/jsm/Addons.js';
+import { TextGeometry } from 'three/examples/jsm/Addons.js';
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
@@ -111,6 +114,12 @@ const HomeScene = ({stars}) => {
 
                 starObject.userData.starID = star.starID;
                 starObject.userData.size = star.size;
+                starObject.userData.xPosition = star.xPosition;
+                starObject.userData.yPosition = star.yPosition;
+                starObject.userData.zPosition = star.zPosition;
+                starObject.userData.name = star.name;
+
+
 
 
                 allStarObjects.push(starObject);
@@ -145,8 +154,33 @@ const HomeScene = ({stars}) => {
                 intersectedStar.userData.targetSize = starSize + 1; 
 
                 intersectedStar.scale.lerp(new THREE.Vector3(intersectedStar.userData.targetSize, intersectedStar.userData.targetSize, intersectedStar.userData.targetSize), scaleSpeed);
+                
+                //Adding Text Above Star on Select 
+                const starPostitionX = intersectedStar.userData.xPosition;
+                const starPostitionY = intersectedStar.userData.yPosition;
+                const starPostitionZ = intersectedStar.userData.zPosition;
+                const starName = intersectedStar.userData.name;
+                
+                const ttfLoader = new TTFLoader();
+                const fontLoader = new FontLoader();
+                ttfLoader.load('/fonts/Alsina.ttf', (json) => {
+                    const authorFont = fontLoader.parse(json);
+                    const textGeometry = new TextGeometry("test", {
+                        size: 3,
+                        depth: 1,
+                        font: authorFont
+                    });
+                    const textMaterial = new THREE.MeshNormalMaterial();
+                    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                    textMesh.position.set(starPostitionX, starPostitionY + 10, starPostitionZ);
+                    textMesh.lookAt(camera.position);
+                    scene.add(textMesh);
+                    
+                })
 
                 console.log(`Intersected with star ID: ${starId}`);
+                console.log("Star Positions:", { starPostitionX, starPostitionY, starPostitionZ });
+                console.log ("Star Name",starName);
             };
 
           };
