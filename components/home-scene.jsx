@@ -54,12 +54,12 @@ const HomeScene = ({stars}) => {
         });
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 2;
+        renderer.toneMappingExposure = 7;
 
 
         //Adding camera controls 
         const controls = new PointerLockControls( camera, document.body);
-        controls.pointerSpeed = 0.5;
+        controls.pointerSpeed = 0.4;
      
         document.addEventListener('mousedown', () => {
             controls.lock();
@@ -69,20 +69,7 @@ const HomeScene = ({stars}) => {
             controls.unlock();
         });
 
-        //Adding scene to renderPass 
-        const renderPass = new RenderPass(scene,camera);
-        const composer = new EffectComposer(renderer);
-        composer.addPass(renderPass)
-
-        //Adding Bloom to renderPass
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(windowW,windowH), 1.6,0.1,0.1
-        );
-        composer.addPass(bloomPass);
-
-         bloomPass.strength = 1;
-         bloomPass.resolution = true;
-         bloomPass.threshold = .05;
+        
 
         //Adding gltf File 
         // const loader = new GLTFLoader();
@@ -131,7 +118,7 @@ const HomeScene = ({stars}) => {
         const raycaster = new THREE.Raycaster();
         const scaleSpeed = 0.3;
 
-        
+        const textMeshExisting = []
 
         const onMouseMove = (event) => {
            
@@ -145,6 +132,12 @@ const HomeScene = ({stars}) => {
                 const originalSize = star.userData.size;
                 star.scale.lerp(new THREE.Vector3(originalSize, originalSize, originalSize), scaleSpeed);
             });
+
+            if (intersects.length === 0) {
+                textMeshExisting.forEach(textMesh => scene.remove(textMesh));
+                textMeshExisting.length = 0; 
+                return;
+            }
 
             if(intersects.length > 0){
 
@@ -165,24 +158,32 @@ const HomeScene = ({stars}) => {
                 const fontLoader = new FontLoader();
                 ttfLoader.load('/fonts/Alsina.ttf', (json) => {
                     const authorFont = fontLoader.parse(json);
-                    const textGeometry = new TextGeometry("test", {
+                    const textGeometry = new TextGeometry(starName, {
                         size: 3,
                         depth: 1,
                         font: authorFont
                     });
-                    const textMaterial = new THREE.MeshNormalMaterial();
+                    const textMaterial = new THREE.MeshPhysicalMaterial({
+                        color: 0xffffff,
+                        roughness: 0.11,
+                        ior: 1.5,
+                        thickness: 1.5,
+                        transparent: true,
+                        envMap:scene.background
+
+                    });
                     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-                    textMesh.position.set(starPostitionX, starPostitionY + 10, starPostitionZ);
+                    textMesh.position.set(starPostitionX+1, starPostitionY+1, starPostitionZ+1);
                     textMesh.lookAt(camera.position);
                     scene.add(textMesh);
-                    
+                    textMeshExisting.push(textMesh)
                 })
-
+                
                 console.log(`Intersected with star ID: ${starId}`);
                 console.log("Star Positions:", { starPostitionX, starPostitionY, starPostitionZ });
                 console.log ("Star Name",starName);
-            };
-
+            }
+            
           };
 
           window.addEventListener('mousemove', onMouseMove);
@@ -212,7 +213,19 @@ const HomeScene = ({stars}) => {
         });
         
         
-        
+        //Adding scene to renderPass 
+        const renderPass = new RenderPass(scene,camera);
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderPass)
+
+        //Adding Bloom to renderPass
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(windowW,windowH), 1.6,0.1,0.1
+        );
+        composer.addPass(bloomPass);
+
+         bloomPass.strength = 1.5;
+         bloomPass.resolution = true;
 
 
           function animate() {
