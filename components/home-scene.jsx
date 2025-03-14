@@ -31,10 +31,10 @@ const HomeScene = ({stars}) => {
         document.body.appendChild( renderer.domElement)
         camera.position.set(0, 0, 0);
         
-        const light = new THREE.AmbientLight(0x404040);
+        // const light = new THREE.AmbientLight(0x404040);
         // light.castShadow = true;
-        light.intensity = 10;
-        scene.add(light);
+        // light.intensity = 1;
+        // scene.add(light);
         
 
         //FPS counter
@@ -54,7 +54,7 @@ const HomeScene = ({stars}) => {
         });
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 7;
+        renderer.toneMappingExposure = 5;
 
 
         //Adding camera controls 
@@ -165,10 +165,11 @@ const HomeScene = ({stars}) => {
                     });
                     const textMaterial = new THREE.MeshPhysicalMaterial({
                         color: 0xffffff,
-                        roughness: 0.11,
+                        roughness: 0.70,
                         ior: 1.5,
                         thickness: 1.5,
                         transparent: true,
+                        transmission: 0.95,
                         envMap:scene.background
 
                     });
