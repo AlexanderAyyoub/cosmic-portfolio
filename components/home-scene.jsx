@@ -10,12 +10,17 @@ import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
 import { TTFLoader } from 'three/examples/jsm/Addons.js';
 import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/examples/jsm/Addons.js';
+import { DRACOLoader } from 'three/examples/jsm/Addons.js';
+import { useRouter } from 'next/navigation';
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
+import { metalness } from 'three/tsl';
 
 const HomeScene = ({stars}) => {
-    useEffect(() =>{
+    const router = useRouter();
+
+    useEffect(() => {
         const windowW = window.innerWidth
         const windowH = window.innerHeight
         const scene = new THREE.Scene();
@@ -31,10 +36,15 @@ const HomeScene = ({stars}) => {
         document.body.appendChild( renderer.domElement)
         camera.position.set(0, 0, 0);
         
-        // const light = new THREE.AmbientLight(0x404040);
-        // light.castShadow = true;
-        // light.intensity = 1;
-        // scene.add(light);
+        //Light
+        const light = new THREE.DirectionalLight(0x404040,7);
+        light.castShadow = true;
+        light.position.set(-3,3,-10);
+        scene.add(light);
+
+        const lightHelper = new THREE.DirectionalLightHelper(light);
+        scene.add(lightHelper)
+
         
 
         //FPS counter
@@ -54,7 +64,7 @@ const HomeScene = ({stars}) => {
         });
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 5;
+        renderer.toneMappingExposure = 2;
 
 
         //Adding camera controls 
@@ -65,20 +75,35 @@ const HomeScene = ({stars}) => {
             controls.lock();
         });
           
-          document.addEventListener('mouseup', () => {
+        document.addEventListener('mouseup', () => {
             controls.unlock();
         });
 
+    
         
 
         //Adding gltf File 
-        // const loader = new GLTFLoader();
-        // loader.load('/models/test.glb', (gltf) => {
-        //     const mesh = gltf.scene;
-        //     scene.add(mesh);
-        //     mesh.position.set(1,0,-2);
+        const loader = new GLTFLoader();
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        loader.setDRACOLoader(dracoLoader);
+
+        loader.load('/models/test4.glb', (gltf) => {
+            const mesh = gltf.scene;
+            scene.add(mesh);
+            mesh.position.copy(camera.position);
+            mesh.position.y += -1.4;
+            mesh.traverse((node) => {
+
+                if (node.isMesh) {
+                    node.castShadow = true;   
+                    node.receiveShadow = true; 
+                }
+            });
             
-        // });
+        });
+
+
 
         
 
@@ -165,12 +190,13 @@ const HomeScene = ({stars}) => {
                     });
                     const textMaterial = new THREE.MeshPhysicalMaterial({
                         color: 0xffffff,
-                        roughness: 0.70,
+                        roughness: 0.5,
                         ior: 1.5,
-                        thickness: 1.5,
+                        thickness: 4,
                         transparent: true,
-                        transmission: 0.95,
+                        transmission: 1,
                         envMap:scene.background
+                   
 
                     });
                     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
@@ -178,6 +204,12 @@ const HomeScene = ({stars}) => {
                     textMesh.lookAt(camera.position);
                     scene.add(textMesh);
                     textMeshExisting.push(textMesh)
+
+                    controls.unlock();
+                    
+
+                    
+
                 })
                 
                 console.log(`Intersected with star ID: ${starId}`);
@@ -187,7 +219,33 @@ const HomeScene = ({stars}) => {
             
           };
 
-          window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mousemove', onMouseMove);
+
+        //onMouseClick event 
+        const onMouseClick = (event)=> {
+            pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects(allStarObjects);
+
+            if (intersects.length > 0){
+                const intersectedStar = intersects[0].object;
+                const starId = intersectedStar.userData.starID; 
+                
+
+
+                if(starId){
+                    router.push(`/starPage/${starId}`);
+                    window.location.href = `/starPage/${starId}`;
+                }
+
+
+            }
+
+        }
+
+        window.addEventListener("click", onMouseClick);
 
         //Making the stars twinkle 
         allStarObjects.forEach(star => {
@@ -238,7 +296,7 @@ const HomeScene = ({stars}) => {
             
         }
         animate();
-    })
+    });
 
     return (
         <div style={{ width: "100%", height: "100%" }}></div>

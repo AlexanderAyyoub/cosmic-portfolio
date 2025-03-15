@@ -5,12 +5,7 @@ export default async function Home(){
   const checkResponse = await getAllStars();
   const checkData = await checkResponse.json();
 
-  return(
+  return <HomeScene stars={checkData.stars} />; 
 
-    <main>
-      <HomeScene stars={checkData.stars} /> 
-    </main>
-
-  );
   
 }
