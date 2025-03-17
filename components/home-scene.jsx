@@ -89,7 +89,7 @@ const HomeScene = ({stars}) => {
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         loader.setDRACOLoader(dracoLoader);
 
-        loader.load('/models/test4.glb', (gltf) => {
+        loader.load('/models/test6.glb', (gltf) => {
             const mesh = gltf.scene;
             scene.add(mesh);
             mesh.position.copy(camera.position);
