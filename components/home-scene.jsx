@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
-import { metalness } from 'three/tsl';
+import { LensFlareEffect, LensFlareParams } from './LensFlare'
 
 const HomeScene = ({stars}) => {
     const router = useRouter();
@@ -31,6 +31,10 @@ const HomeScene = ({stars}) => {
         renderer.setSize(windowW, windowH);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFShadowMap;
+
+        //Adding lens Flare 
+        const lensFlareEffect = LensFlareEffect();
+        scene.add(lensFlareEffect);
 
         //This puts it int HTML format 
         document.body.appendChild( renderer.domElement)
@@ -57,7 +61,7 @@ const HomeScene = ({stars}) => {
 
         //Trying hdri 
         const hdriLoader = new RGBELoader()
-        hdriLoader.load('/textures/spaceHDRI.hdr', function (texture) {
+        hdriLoader.load('/textures/spaceHDRIv2.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
         scene.environment = texture;
@@ -112,12 +116,16 @@ const HomeScene = ({stars}) => {
 
         if (stars && stars.length > 0) {
             stars.forEach(star => {
-                const geometry = new THREE.SphereGeometry();
-                const material = new THREE.MeshStandardMaterial({
-                    color: new THREE.Color(0xffffff),
-                    emissive: new THREE.Color(0x0927e6),
-                    emissiveIntensity: 4,
-                });
+                // const geometry = new THREE.SphereGeometry();
+                loader.load('/models/starMesh.glb', (gltf) => {
+                    const geometry = gltf.scene.children[0].geometry;
+
+                    const material = new THREE.MeshStandardMaterial({
+                        color: new THREE.Color(0xffffff),
+                        emissive: new THREE.Color(0x0927e6),
+                        emissiveIntensity: 4,
+                    });
+
                 const starObject = new THREE.Mesh(geometry, material);
                 
                 starObject.position.set(star.xPosition, star.yPosition, star.zPosition);
@@ -135,6 +143,12 @@ const HomeScene = ({stars}) => {
 
 
                 allStarObjects.push(starObject);
+                });
+
+                
+                
+
+                
             })
         }
 
@@ -142,6 +156,8 @@ const HomeScene = ({stars}) => {
         const pointer = new THREE.Vector2();
         const raycaster = new THREE.Raycaster();
         const scaleSpeed = 0.3;
+        
+     
 
         const textMeshExisting = []
 
@@ -159,8 +175,9 @@ const HomeScene = ({stars}) => {
             });
 
             if (intersects.length === 0) {
-                textMeshExisting.forEach(textMesh => scene.remove(textMesh));
-                textMeshExisting.length = 0; 
+                textMeshExisting.forEach(textMesh => {
+                    textMesh.userData.fadeOut = true; 
+                });
                 return;
             }
 
@@ -179,6 +196,7 @@ const HomeScene = ({stars}) => {
                 const starPostitionZ = intersectedStar.userData.zPosition;
                 const starName = intersectedStar.userData.name;
                 
+
                 const ttfLoader = new TTFLoader();
                 const fontLoader = new FontLoader();
                 ttfLoader.load('/fonts/Alsina.ttf', (json) => {
@@ -195,10 +213,12 @@ const HomeScene = ({stars}) => {
                         thickness: 4,
                         transparent: true,
                         transmission: 1,
-                        envMap:scene.background
+                        envMap:scene.background,
+                        opacity:0
                    
 
                     });
+
                     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
                     textMesh.position.set(starPostitionX+1, starPostitionY+1, starPostitionZ+1);
                     textMesh.lookAt(camera.position);
@@ -206,7 +226,7 @@ const HomeScene = ({stars}) => {
                     textMeshExisting.push(textMesh)
 
                     controls.unlock();
-                    
+                   
 
                     
 
@@ -283,18 +303,36 @@ const HomeScene = ({stars}) => {
         );
         composer.addPass(bloomPass);
 
-         bloomPass.strength = 1.5;
-         bloomPass.resolution = true;
+        bloomPass.strength = 1.5;
+        bloomPass.resolution = true;
 
+        const targetOpacity = 1;
+        const fadeSpeedOpacity = .02;
 
-          function animate() {
+        function animate() {
             renderer.render(scene, camera);
             controls.update();
             stats.update();
             composer.render();
             renderer.setAnimationLoop(animate);
+            //Fadding text in and out
+            textMeshExisting.forEach((textMesh, index) => {
+                if (textMesh.material) {
+         
+                    if (textMesh.userData.fadeOut) {
+                        textMesh.material.opacity += (0 - textMesh.material.opacity) * fadeSpeedOpacity;
+                        if (textMesh.material.opacity <= 0.01) {
+                            scene.remove(textMesh);
+                            textMeshExisting.splice(index, 1); 
+                        }
+                    } else {
+                        textMesh.material.opacity += (targetOpacity - textMesh.material.opacity) * fadeSpeedOpacity;
+                    }
+                }
+            });
             
         }
+        
         animate();
     });
 
