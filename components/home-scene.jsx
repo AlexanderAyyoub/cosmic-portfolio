@@ -15,7 +15,6 @@ import { useRouter } from 'next/navigation';
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
-import { LensFlareEffect, LensFlareParams } from './LensFlare'
 
 const HomeScene = ({stars}) => {
     const router = useRouter();
@@ -32,9 +31,7 @@ const HomeScene = ({stars}) => {
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFShadowMap;
 
-        //Adding lens Flare 
-        const lensFlareEffect = LensFlareEffect();
-        scene.add(lensFlareEffect);
+        
 
         //This puts it int HTML format 
         document.body.appendChild( renderer.domElement)
