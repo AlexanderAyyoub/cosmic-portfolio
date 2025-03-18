@@ -12,6 +12,7 @@ import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
+import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
@@ -25,6 +26,7 @@ const HomeScene = ({stars}) => {
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, windowW / windowH, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
+        const textureLoader = new THREE.TextureLoader();
 
 
         renderer.setSize(windowW, windowH);
@@ -110,6 +112,7 @@ const HomeScene = ({stars}) => {
 
         //POPULATING SCENE WITH PROJECT STARS 
         const allStarObjects = []
+        const allFlareObjects = []
 
         if (stars && stars.length > 0) {
             stars.forEach(star => {
@@ -118,8 +121,8 @@ const HomeScene = ({stars}) => {
                     const geometry = gltf.scene.children[0].geometry;
 
                     const material = new THREE.MeshStandardMaterial({
-                        color: new THREE.Color(0xffffff),
-                        emissive: new THREE.Color(0x0927e6),
+                        color: new THREE.Color(0xffffff), //Change for custom color 
+                        emissive: new THREE.Color(0x0927e6), //Change for custom color
                         emissiveIntensity: 4,
                     });
 
@@ -140,6 +143,24 @@ const HomeScene = ({stars}) => {
 
 
                 allStarObjects.push(starObject);
+
+                //Add lens flare 
+                const starLight =  new THREE.PointLight(0xffffff,1); //Change for custom color
+                starLight.position.set(star.xPosition, star.yPosition, star.zPosition);
+
+
+                const textureFlare1 = textureLoader.load('/textures/placeHolderLensFlare.png');
+
+
+                const lensFlare = new Lensflare();
+
+                lensFlare.addElement(new LensflareElement( textureFlare1, star.size * 70, 0, starLight.color ));
+                
+                scene.add(starLight);
+                starLight.add( lensFlare );
+                
+                // allFlareObjects.push(lensFlare);
+
                 });
 
                 
