@@ -13,6 +13,8 @@ import { TextGeometry } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
 import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
+import { Text } from 'troika-three-text'; // Import the Text component from troika-three-text
+import { gsap } from 'gsap'; // Optionally, use GSAP for smooth animations
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
@@ -87,24 +89,24 @@ const HomeScene = ({stars}) => {
 
         //Adding gltf File 
         const loader = new GLTFLoader();
-        const dracoLoader = new DRACOLoader();
-        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-        loader.setDRACOLoader(dracoLoader);
+        // const dracoLoader = new DRACOLoader();
+        // dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        // loader.setDRACOLoader(dracoLoader);
 
-        loader.load('/models/test6.glb', (gltf) => {
-            const mesh = gltf.scene;
-            scene.add(mesh);
-            mesh.position.copy(camera.position);
-            mesh.position.y += -1.4;
-            mesh.traverse((node) => {
+        // loader.load('/models/test6.glb', (gltf) => {
+        //     const mesh = gltf.scene;
+        //     scene.add(mesh);
+        //     mesh.position.copy(camera.position);
+        //     mesh.position.y += -1.4;
+        //     mesh.traverse((node) => {
 
-                if (node.isMesh) {
-                    node.castShadow = true;   
-                    node.receiveShadow = true; 
-                }
-            });
+        //         if (node.isMesh) {
+        //             node.castShadow = true;   
+        //             node.receiveShadow = true; 
+        //         }
+        //     });
             
-        });
+        // });
 
 
 
@@ -112,7 +114,6 @@ const HomeScene = ({stars}) => {
 
         //POPULATING SCENE WITH PROJECT STARS 
         const allStarObjects = []
-        const allFlareObjects = []
 
         if (stars && stars.length > 0) {
             stars.forEach(star => {
@@ -159,7 +160,6 @@ const HomeScene = ({stars}) => {
                 scene.add(starLight);
                 starLight.add( lensFlare );
                 
-                // allFlareObjects.push(lensFlare);
 
                 });
 
@@ -180,82 +180,61 @@ const HomeScene = ({stars}) => {
         const textMeshExisting = []
 
         const onMouseMove = (event) => {
-           
             pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
             pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      
+        
             raycaster.setFromCamera(pointer, camera);
             const intersects = raycaster.intersectObjects(allStarObjects);
-
+        
             allStarObjects.forEach(star => {
                 const originalSize = star.userData.size;
                 star.scale.lerp(new THREE.Vector3(originalSize, originalSize, originalSize), scaleSpeed);
             });
-
+        
             if (intersects.length === 0) {
                 textMeshExisting.forEach(textMesh => {
-                    textMesh.userData.fadeOut = true; 
+                    textMesh.userData.fadeOut = true;
                 });
                 return;
             }
-
-            if(intersects.length > 0){
-
+        
+            if(intersects.length > 0) {
                 const intersectedStar = intersects[0].object;
                 const starId = intersectedStar.userData.starID; 
                 const starSize = intersectedStar.userData.size;
                 intersectedStar.userData.targetSize = starSize + 1; 
-
+        
                 intersectedStar.scale.lerp(new THREE.Vector3(intersectedStar.userData.targetSize, intersectedStar.userData.targetSize, intersectedStar.userData.targetSize), scaleSpeed);
-                
-                //Adding Text Above Star on Select 
+        
+                // Adding Text Above Star on Select (Using troika-three-text)
                 const starPostitionX = intersectedStar.userData.xPosition;
                 const starPostitionY = intersectedStar.userData.yPosition;
                 const starPostitionZ = intersectedStar.userData.zPosition;
                 const starName = intersectedStar.userData.name;
-                
-
-                const ttfLoader = new TTFLoader();
-                const fontLoader = new FontLoader();
-                ttfLoader.load('/fonts/Alsina.ttf', (json) => {
-                    const authorFont = fontLoader.parse(json);
-                    const textGeometry = new TextGeometry(starName, {
-                        size: 3,
-                        depth: 1,
-                        font: authorFont
-                    });
-                    const textMaterial = new THREE.MeshPhysicalMaterial({
-                        color: 0xffffff,
-                        roughness: 0.5,
-                        ior: 1.5,
-                        thickness: 4,
-                        transparent: true,
-                        transmission: 1,
-                        envMap:scene.background,
-                        opacity:0
-                   
-
-                    });
-
-                    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-                    textMesh.position.set(starPostitionX+1, starPostitionY+1, starPostitionZ+1);
-                    textMesh.lookAt(camera.position);
-                    scene.add(textMesh);
-                    textMeshExisting.push(textMesh)
-
-                    controls.unlock();
-                   
-
-                    
-
-                })
-                
-                console.log(`Intersected with star ID: ${starId}`);
-                console.log("Star Positions:", { starPostitionX, starPostitionY, starPostitionZ });
-                console.log ("Star Name",starName);
+        
+                // Create troika text
+                const textMesh = new Text();
+                textMesh.material = new THREE.MeshStandardMaterial({
+                    color: 0xffffff,  // Keep the base color white
+                    roughness: 0.5,   // Adjust roughness for smoothness
+                    emissive: new THREE.Color(0xe1e3e1),  // Remove glow (emissive set to black)
+                    emissiveIntensity: .3, // Remove emissive intensity
+                    transparent: true,  // Ensure transparency is handled correctly
+                    depthWrite: false,  // Prevent transparency issues
+                });
+                textMesh.text = starName; 
+                textMesh.font = '/fonts/Alsina.ttf'; 
+                textMesh.fontSize = 3; 
+                textMesh.position.set(starPostitionX + 3, starPostitionY + 5, starPostitionZ + 3);
+                textMesh.lookAt(camera.position);
+                scene.add(textMesh);
+                textMeshExisting.push(textMesh);
+        
+                controls.unlock();
             }
-            
-          };
+        
+          
+        };
 
         window.addEventListener('mousemove', onMouseMove);
 
@@ -333,15 +312,15 @@ const HomeScene = ({stars}) => {
             stats.update();
             composer.render();
             renderer.setAnimationLoop(animate);
+
             //Fadding text in and out
             textMeshExisting.forEach((textMesh, index) => {
                 if (textMesh.material) {
-         
                     if (textMesh.userData.fadeOut) {
                         textMesh.material.opacity += (0 - textMesh.material.opacity) * fadeSpeedOpacity;
                         if (textMesh.material.opacity <= 0.01) {
                             scene.remove(textMesh);
-                            textMeshExisting.splice(index, 1); 
+                            textMeshExisting.splice(index, 1);
                         }
                     } else {
                         textMesh.material.opacity += (targetOpacity - textMesh.material.opacity) * fadeSpeedOpacity;
