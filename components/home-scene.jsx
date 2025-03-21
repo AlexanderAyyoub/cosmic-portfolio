@@ -14,7 +14,6 @@ import { DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
 import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
 import { Text } from 'troika-three-text'; // Import the Text component from troika-three-text
-import { gsap } from 'gsap'; // Optionally, use GSAP for smooth animations
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
@@ -215,12 +214,12 @@ const HomeScene = ({stars}) => {
                 // Create troika text
                 const textMesh = new Text();
                 textMesh.material = new THREE.MeshStandardMaterial({
-                    color: 0xffffff,  // Keep the base color white
-                    roughness: 0.5,   // Adjust roughness for smoothness
-                    emissive: new THREE.Color(0xe1e3e1),  // Remove glow (emissive set to black)
-                    emissiveIntensity: .3, // Remove emissive intensity
-                    transparent: true,  // Ensure transparency is handled correctly
-                    depthWrite: false,  // Prevent transparency issues
+                    color: 0xffffff,  
+                    roughness: 0.5,   
+                    emissive: new THREE.Color(0xe1e3e1),  
+                    emissiveIntensity: .3, 
+                    transparent: true,  
+                    depthWrite: false,  
                 });
                 textMesh.text = starName; 
                 textMesh.font = '/fonts/Alsina.ttf'; 
@@ -302,6 +301,8 @@ const HomeScene = ({stars}) => {
 
         bloomPass.strength = 1.5;
         bloomPass.resolution = true;
+     
+        
 
         const targetOpacity = 1;
         const fadeSpeedOpacity = .02;
