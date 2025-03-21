@@ -22,6 +22,13 @@ const StarPageScene = ({star}) => {
         renderer.setSize(windowW, windowH);
 
         document.body.appendChild( renderer.domElement);
+        renderer.domElement.style.display = 'block';
+        renderer.domElement.style.position = 'absolute';
+        renderer.domElement.style.top = '0';
+        renderer.domElement.style.left = '0';
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
+
         camera.position.set(0, 0, 0);
 
         const light = new THREE.AmbientLight(0xffffff,1);

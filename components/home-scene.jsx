@@ -38,6 +38,14 @@ const HomeScene = ({stars}) => {
 
         //This puts it int HTML format 
         document.body.appendChild( renderer.domElement)
+
+        //Makes sure theres no scroll bars and fully fits screen(using css canvas) 
+        renderer.domElement.style.display = 'block';
+        renderer.domElement.style.position = 'absolute';
+        renderer.domElement.style.top = '0';
+        renderer.domElement.style.left = '0';
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
         camera.position.set(0, 0, 0);
         
         //Light
@@ -113,18 +121,28 @@ const HomeScene = ({stars}) => {
 
         //POPULATING SCENE WITH PROJECT STARS 
         const allStarObjects = []
+        const allLensFlars = []
 
         if (stars && stars.length > 0) {
             stars.forEach(star => {
-                // const geometry = new THREE.SphereGeometry();
-                loader.load('/models/starMesh.glb', (gltf) => {
-                    const geometry = gltf.scene.children[0].geometry;
+                const geometry = new THREE.SphereGeometry();
+                // loader.load('/models/starMesh.glb', (gltf) => {
+                //     const geometry = gltf.scene.children[0].geometry;
 
-                    const material = new THREE.MeshStandardMaterial({
-                        color: new THREE.Color(0xffffff), //Change for custom color 
-                        emissive: new THREE.Color(0x0927e6), //Change for custom color
-                        emissiveIntensity: 4,
-                    });
+                //     const material = new THREE.MeshStandardMaterial({
+                //         color: new THREE.Color(0xffffff), //Change for custom color 
+                //         emissive: new THREE.Color(0x0927e6), //Change for custom color
+                //         emissiveIntensity: 4,
+                //     });
+
+                const material = new THREE.MeshStandardMaterial({
+                    color: new THREE.Color(0xffffff), //Change for custom color 
+                    emissive: new THREE.Color(0x0927e6), //Change for custom color
+                    emissiveIntensity: 4,
+                });
+                
+                
+
 
                 const starObject = new THREE.Mesh(geometry, material);
                 
@@ -144,23 +162,32 @@ const HomeScene = ({stars}) => {
 
                 allStarObjects.push(starObject);
 
-                //Add lens flare 
-                const starLight =  new THREE.PointLight(0xffffff,1); //Change for custom color
+                // Add lens flare 
+                const starLight = new THREE.PointLight(0xffffff, 1); // Change for custom color
                 starLight.position.set(star.xPosition, star.yPosition, star.zPosition);
 
+                const textureFlares = Array.from({ length: 10 }, (_, i) => 
+                    textureLoader.load(`/textures/lens-flare/${i + 1}.png`)
+                );
 
-                const textureFlare1 = textureLoader.load('/textures/placeHolderLensFlare.png');
+                const randomTexture = textureFlares[Math.floor(Math.random() * textureFlares.length)];
 
+                const randomRotation = (Math.random() - 0.5) * 2 * Math.PI; 
+                const randomScale = 1 + Math.random() * .2; 
 
                 const lensFlare = new Lensflare();
+                const lensElement = new LensflareElement(randomTexture, star.size * 100 * randomScale , 0, starLight.color);
 
-                lensFlare.addElement(new LensflareElement( textureFlare1, star.size * 70, 0, starLight.color ));
-                
+                lensElement.size *= Math.random() > 0.5 ? 1 : -1; 
+
+                lensFlare.addElement(lensElement);
+
                 scene.add(starLight);
-                starLight.add( lensFlare );
+                starLight.add(lensFlare);
+                
                 
 
-                });
+              
 
                 
                 
