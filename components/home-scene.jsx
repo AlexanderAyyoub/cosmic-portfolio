@@ -121,7 +121,6 @@ const HomeScene = ({stars}) => {
 
         //POPULATING SCENE WITH PROJECT STARS 
         const allStarObjects = []
-        const allLensFlars = []
 
         if (stars && stars.length > 0) {
             stars.forEach(star => {
