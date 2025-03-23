@@ -11,6 +11,7 @@ import { TTFLoader } from 'three/examples/jsm/Addons.js';
 import { FontLoader } from 'three/examples/jsm/Addons.js';
 import { TextGeometry } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
+import { EXRLoader } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
 import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
 import { Text } from 'troika-three-text'; // Import the Text component from troika-three-text
@@ -68,8 +69,8 @@ const HomeScene = ({stars}) => {
         scene.add(starArray);
 
         //Trying hdri 
-        const hdriLoader = new RGBELoader()
-        hdriLoader.load('/textures/spaceHDRIv2.hdr', function (texture) {
+        const hdriLoader = new EXRLoader()
+        hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
         scene.environment = texture;
