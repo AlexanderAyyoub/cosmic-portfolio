@@ -18,24 +18,21 @@ export type Star = {
     zPosition: number | null;
     modleName: string | null;
     size: number | null;
-    imageURL: string | null;
+    imageURL: string[] | null; // Changed to an array of strings
 };
 
 export default async function getStarById(props: GetStarProps) {
     try {
         console.log("Fetching star with ID:", props.starId);
 
-        // Convert string ID to number
         const starIdNumber = parseInt(props.starId, 10);
 
-        // Query the database
         const results = await db
             .select()
             .from(starTable)
             .where(eq(starTable.starID, starIdNumber))
             .limit(1);
 
-        // Check if we found a star
         if (results.length === 0) {
             console.log("No star found with ID:", props.starId);
             return NextResponse.json({
@@ -43,10 +40,8 @@ export default async function getStarById(props: GetStarProps) {
             }, { status: 404 });
         }
 
-        // Get the first (and only) result
         const starData = results[0];
 
-        // Transform the data to match the Star type with proper field names
         const star: Star = {
             starID: starData.starID,
             name: starData.name,
@@ -56,7 +51,7 @@ export default async function getStarById(props: GetStarProps) {
             zPosition: starData.zPosition,
             modleName: starData.modleName,
             size: starData.size,
-            imageURL: starData.imageURL
+            imageURL: starData.imageURL ? starData.imageURL.split(',') : null
         };
 
         return NextResponse.json({ star });
