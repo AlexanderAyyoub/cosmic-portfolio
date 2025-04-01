@@ -30,6 +30,9 @@ export default async function DynamicStarPage(props: PageProps) {
         return notFound();
     }
 
-    return <StarPageScene star={star} />; 
+    return (
+        <StarPageScene star={star} />
+        
+    ); 
 
 }

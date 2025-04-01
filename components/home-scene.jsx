@@ -14,7 +14,7 @@ import { DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { EXRLoader } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
 import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
-import { Text } from 'troika-three-text'; // Import the Text component from troika-three-text
+import { Text } from 'troika-three-text'; 
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
