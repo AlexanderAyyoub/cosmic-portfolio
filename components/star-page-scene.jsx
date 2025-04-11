@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { EXRLoader } from 'three/examples/jsm/Addons.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
+import { useRouter } from 'next/navigation';
 import * as THREE from 'three';
 
 
@@ -15,6 +16,7 @@ import { transmission } from 'three/tsl';
 
 
 const StarPageScene = ({star}) => {
+    const router = useRouter();
     
     useEffect(() => {
 
@@ -91,7 +93,7 @@ const StarPageScene = ({star}) => {
         projectName.material = new THREE.MeshStandardMaterial({
             color: 0xffffff,  
             roughness: 0.5,   
-            emissive: new THREE.Color(0xFFFFFF),  
+            emissive: new THREE.Color(0xFFFFFF),  //Change for custom color 
             emissiveIntensity: 1, 
         });
         projectName.text = star.name;
@@ -109,7 +111,7 @@ const StarPageScene = ({star}) => {
         projectDescription.material = new THREE.MeshStandardMaterial({
             color: 0xffffff,  
             roughness: 0.5,   
-            emissive: new THREE.Color(0xFFFFFF),  
+            emissive: new THREE.Color(0xFFFFFF),  //Change for custom color 
             emissiveIntensity: 1, 
         });
         projectDescription.text = star.description;
@@ -124,6 +126,71 @@ const StarPageScene = ({star}) => {
         projectDescription.clipRect = [-1.25, -2, 4, 1.5];
 
         scene.add(projectDescription);
+
+
+        //Back button 
+        const goBack = new Text();
+        goBack.color = new THREE.Color(0xffffff);
+        goBack.fillOpacity = 0.4;
+        goBack.emissive = new THREE.Color(0xffffff);
+        goBack.emissiveIntensity = 1;
+        goBack.text = "Go Back >";
+        goBack.position.set(0,0,1.1)
+        goBack.anchorX = -3;
+        goBack.anchorY = 1.9;
+        goBack.fontSize = .25;
+        goBack.fillOpacity = .4;
+        goBack.outlineWidth = .01;
+        goBack.outlineColor = new THREE.Color(0x000000);
+        scene.add(goBack);
+
+        //On MouseClick (Add function to to go back button)
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+        
+        
+        const onMouseClick = (event)=> {
+            pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects([goBack]);
+
+            if(intersects.length > 0){
+                router.push(`/`);
+                console.log("clicked")
+            }
+        }
+        window.addEventListener("click", onMouseClick);
+
+        
+        //On Mousemove (light up go back button)
+        let targetOpacity = 1;
+        let currentOpacity = 0.4;
+
+        let targetLocation = -3.2; 
+        let currentLocation = -3;
+
+        const onMouseMove = (event) => {
+            pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects([goBack]);
+
+
+            if (intersects.length > 0) {
+                targetOpacity = 1; 
+                targetLocation = -3.2; 
+
+            } else {
+                targetOpacity = 0.4; 
+                targetLocation = -3;
+
+            }
+        }
+        window.addEventListener("mousemove", onMouseMove);
+
 
         //Basic lighting 
         const light = new THREE.DirectionalLight(0x404040,70);
@@ -402,6 +469,17 @@ const StarPageScene = ({star}) => {
             camera.position.y = targetY * 2; 
 
             camera.lookAt(new THREE.Vector3(0, 0, 0)); 
+
+            //Go Back Opacity transition 
+            const speedO = 0.1; 
+            currentOpacity += (targetOpacity - currentOpacity) * speedO;
+            
+            goBack.fillOpacity = currentOpacity;
+
+            const speedL = .05
+            currentLocation += (targetLocation - currentLocation) * speedL;
+
+            goBack.anchorX = currentLocation;
 
             //Animating bassed on Scroll Event (scrollProgress is the main factor comes from scroll event )
             const timeOffset = .1 / allImagePlanes.length; 

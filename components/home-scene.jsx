@@ -69,15 +69,15 @@ const HomeScene = ({stars}) => {
         scene.add(starArray);
 
         //Trying hdri 
-        const hdriLoader = new EXRLoader()
-        hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        scene.background = texture;
-        scene.environment = texture;
-        });
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 2;
+        // const hdriLoader = new EXRLoader()
+        // hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
+        // texture.mapping = THREE.EquirectangularReflectionMapping;
+        // scene.background = texture;
+        // scene.environment = texture;
+        // });
+        // renderer.outputColorSpace = THREE.SRGBColorSpace;
+        // renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        // renderer.toneMappingExposure = 2;
 
 
         //Adding camera controls 
