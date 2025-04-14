@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import AdminLayout from "components/admin-page"
 
 type PageProps = {
     params: { key?: string }; 
@@ -16,9 +17,6 @@ export default function AdminPage({ params }: PageProps) {
         notFound();
     }
 
-    return (
-        <div>
-            <h1>Admin Page</h1>
-        </div>
-    );
+    return <AdminLayout />
+
 }

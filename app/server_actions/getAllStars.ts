@@ -13,7 +13,12 @@ export type Star = {
     zPosition: number | null;
     modleName: string | null;
     size: number | null;
-    imageURL: string[]; 
+    imageURL: string[];
+    color1: string | null;
+    color2: string | null;
+    color3: string | null;
+    color4: string | null;
+    solarFlareGIF: string | null;
 };
 
 export default async function getAllStars() {
@@ -36,7 +41,12 @@ export default async function getAllStars() {
             zPosition: starData.zPosition,
             modleName: starData.modleName,
             size: starData.size,
-            imageURL: starData.imageURL ? starData.imageURL.split(",") : [] // Convert to array
+            imageURL: starData.imageURL ? starData.imageURL.split(",") : [],
+            color1: starData.color1,
+            color2: starData.color2,
+            color3: starData.color3,
+            color4: starData.color4,
+            solarFlareGIF: starData.solarFlareGIF
         }));
 
         return NextResponse.json({ stars });

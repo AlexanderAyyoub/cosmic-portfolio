@@ -18,7 +18,12 @@ export type Star = {
     zPosition: number | null;
     modleName: string | null;
     size: number | null;
-    imageURL: string[] | null; // Changed to an array of strings
+    imageURL: string[] | null;
+    color1: string | null;
+    color2: string | null;
+    color3: string | null;
+    color4: string | null;
+    solarFlareGIF: string | null;
 };
 
 export default async function getStarById(props: GetStarProps) {
@@ -51,7 +56,12 @@ export default async function getStarById(props: GetStarProps) {
             zPosition: starData.zPosition,
             modleName: starData.modleName,
             size: starData.size,
-            imageURL: starData.imageURL ? starData.imageURL.split(',') : null
+            imageURL: starData.imageURL ? starData.imageURL.split(',') : null,
+            color1: starData.color1,
+            color2: starData.color2,
+            color3: starData.color3,
+            color4: starData.color4,
+            solarFlareGIF: starData.solarFlareGIF
         };
 
         return NextResponse.json({ star });

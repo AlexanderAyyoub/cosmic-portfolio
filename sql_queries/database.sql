@@ -27,7 +27,13 @@ CREATE TABLE IF NOT EXISTS `cosmicPortfolio`.`star` (
   `modleName` VARCHAR(10000) NULL,
   `Size` FLOAT NULL,
   `imageURL` VARCHAR(10000) NULL,
-  PRIMARY KEY (`starID`))
+  `color1` CHAR(7) NULL, 
+  `color2` CHAR(7) NULL,
+  `color3` CHAR(7) NULL,
+  `color4` CHAR(7) NULL,
+  `solarFlareGIF` VARCHAR(10000) NULL, 
+  PRIMARY KEY (`starID`)
+)
 ENGINE = InnoDB;
 
 
