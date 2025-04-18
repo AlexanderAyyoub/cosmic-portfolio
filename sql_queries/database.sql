@@ -17,21 +17,23 @@ USE `cosmicPortfolio` ;
 -- -----------------------------------------------------
 -- Table `cosmicPortfolio`.`star`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `cosmicPortfolio`.`star`;
+
 CREATE TABLE IF NOT EXISTS `cosmicPortfolio`.`star` (
   `starID` INT NOT NULL,
-  `Name` VARCHAR(10000) NULL,
+  `Name` VARCHAR(1000) NULL,
   `Description` MEDIUMTEXT NULL,
   `xPosition` FLOAT NULL,
   `yPosition` FLOAT NULL,
   `zPosition` FLOAT NULL,
-  `modleName` VARCHAR(10000) NULL,
+  `modleName` VARCHAR(1000) NULL,
   `Size` FLOAT NULL,
-  `imageURL` VARCHAR(10000) NULL,
+  `imageURL` VARCHAR(1000) NULL,
   `color1` CHAR(7) NULL, 
   `color2` CHAR(7) NULL,
   `color3` CHAR(7) NULL,
   `color4` CHAR(7) NULL,
-  `solarFlareGIF` VARCHAR(10000) NULL, 
+  `solarFlareGIF` VARCHAR(1000) NULL, 
   PRIMARY KEY (`starID`)
 )
 ENGINE = InnoDB;

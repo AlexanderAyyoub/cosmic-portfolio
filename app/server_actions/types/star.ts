@@ -14,4 +14,10 @@ export type Star = {
     color4: string | null;
     solarFlareGIF: string | null;
   };
+
+
+
+
+  
+
   
