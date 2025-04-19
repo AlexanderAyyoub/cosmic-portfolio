@@ -9,11 +9,31 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { Minus, Plus, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { 
+  Plus, 
+  ChevronDown, 
+  ChevronUp, 
+  Loader2, 
+  Trash2,
+  Moon,
+  Sun
+} from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { saveStars, Star } from 'app/server_actions/saveStars'
+import { removeStar } from 'app/server_actions/removeStars'
 import getAllStars from 'app/server_actions/getAllStars'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useTheme } from 'next-themes'
 
 type FormData = Star & {
   open: boolean;
@@ -23,6 +43,10 @@ export default function AdminLayout() {
   const [forms, setForms] = useState<FormData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [starToDelete, setStarToDelete] = useState<number | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     loadStars()
@@ -107,10 +131,35 @@ export default function AdminLayout() {
     ]);
   }
 
-  const handleRemove = (index: number) => {
-    const updatedForms = [...forms]
-    updatedForms.splice(index, 1)
-    setForms(updatedForms)
+  // Open dialog for permanently deleting from database
+  const handleDeleteStar = (starID: number) => {
+    setStarToDelete(starID)
+    setShowDeleteDialog(true)
+  }
+
+  // Confirm and execute database deletion
+  const confirmDeleteStar = async () => {
+    if (starToDelete === null) return
+    
+    try {
+      setIsDeleting(true)
+      const result = await removeStar(starToDelete)
+      
+      if (result.success) {
+        toast.success(`Star #${starToDelete} has been permanently deleted`)
+        // Reload stars or remove from state
+        await loadStars()
+      } else {
+        toast.error(`Failed to delete star: ${result.message}`)
+      }
+    } catch (error) {
+      console.error('Error deleting star:', error)
+      toast.error('An unexpected error occurred while deleting')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+      setStarToDelete(null)
+    }
   }
 
   const toggleOpen = (index: number, isOpen: boolean) => {
@@ -119,7 +168,6 @@ export default function AdminLayout() {
     setForms(updatedForms)
   }
   
-
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true)
@@ -147,7 +195,7 @@ export default function AdminLayout() {
         toast.success('Stars saved successfully!');
         await loadStars(); 
       } else {
-        toast.error( 'Failed to save stars');
+        toast.error('Failed to save stars');
       }
     } catch (error) {
       console.error('Error saving stars:', error);
@@ -156,6 +204,10 @@ export default function AdminLayout() {
       setIsSubmitting(false)
     }
   };
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
 
   if (isLoading) {
     return (
@@ -168,9 +220,49 @@ export default function AdminLayout() {
 
   return (
     <div className="space-y-4 max-w-xl mx-auto mt-10">
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently delete star?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the star with ID #{starToDelete} from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteStar}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 size={16} className="mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Star Administration</h1>
-        <div className="text-sm text-gray-500">{forms.length} stars</div>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? (
+              <Sun size={16} className="text-yellow-500" />
+            ) : (
+              <Moon size={16} className="text-blue-700" />
+            )}
+          </Button>
+          <div className="text-sm text-gray-500">{forms.length} stars</div>
+        </div>
       </div>
       
       {forms.map((form, idx) => (
@@ -189,14 +281,20 @@ export default function AdminLayout() {
                 </Button>
               </CollapsibleTrigger>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemove(idx)}
-                disabled={forms.length === 1}
-              >
-                <Minus className="text-red-500" size={16} />
-              </Button>
+              <div className="flex gap-1">
+                {/* Delete from database button */}
+                {form.starID > 0 && ( // Only show delete button for stars that exist in DB
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteStar(form.starID)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    title="Delete from database"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                )}
+              </div>
             </div>
 
             <CollapsibleContent className="grid grid-cols-2 gap-4 px-2 pb-2">

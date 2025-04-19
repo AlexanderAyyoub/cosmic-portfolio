@@ -22,7 +22,6 @@ export type Star = {
   };
 export async function saveStars(formStars: Star[]) {
   try {
-    // Start a transaction to ensure all operations succeed or fail together
     return await db.transaction(async (tx) => {
       for (const star of formStars) {
         const starID = star.starID;
