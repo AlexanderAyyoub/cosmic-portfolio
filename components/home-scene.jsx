@@ -249,7 +249,7 @@ const HomeScene = ({stars}) => {
                     depthWrite: false,  
                 });
                 textMesh.text = starName; 
-                textMesh.font = '/fonts/Alsina.ttf'; 
+                textMesh.font = '/fonts/AlbertusMTStd.otf'; 
                 textMesh.fontSize = 3; 
                 textMesh.position.set(starPostitionX + 3, starPostitionY + 5, starPostitionZ + 3);
                 textMesh.lookAt(camera.position);

@@ -97,10 +97,10 @@ const StarPageScene = ({star}) => {
             emissiveIntensity: 1, 
         });
         projectName.text = star.name;
-        projectName.font = '/fonts/Alsina.ttf';
+        projectName.font = '/fonts/AlbertusMTStd.otf';
         projectName.fontSize = .3;
         projectName.anchorX = 1;
-        projectName.anchorY = -1.85;
+        projectName.anchorY = -1.8;
         projectName.position.set(0,0,1.6)
         projectName.rotation.set(Math.PI / 1.02, -Math.PI / 1.02, -Math.PI / 1)
 
@@ -115,7 +115,7 @@ const StarPageScene = ({star}) => {
             emissiveIntensity: 1, 
         });
         projectDescription.text = star.description;
-        projectDescription.font = '/fonts/Alsina.ttf';
+        projectDescription.font = '/fonts/ABCArizonaFlare-Regular-Trial.otf';
         projectDescription.fontSize = .15;
         projectDescription.anchorX = 1.25;
         projectDescription.anchorY = -1.5;
@@ -319,60 +319,60 @@ const StarPageScene = ({star}) => {
         
         
         
-        // const randomIndex = Math.floor(Math.random() * 10) + 1;
-        // const randomNebulaePath = `/textures/nebulae/${randomIndex}.exr`;
+        const randomIndex = Math.floor(Math.random() * 10) + 1;
+        const randomNebulaePath = `/textures/nebulae/${randomIndex}.exr`;
 
-        // // HDRI Loader and Shader Application
-        // const pmremGenerator = new THREE.PMREMGenerator(renderer);
-        // pmremGenerator.compileEquirectangularShader();
+        // HDRI Loader and Shader Application
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileEquirectangularShader();
         
-        // new EXRLoader().load(randomNebulaePath, function (texture) {
-        //     texture.mapping = THREE.EquirectangularReflectionMapping;
-        //     texture.colorSpace = THREE.LinearSRGBColorSpace;
+        new EXRLoader().load(randomNebulaePath, function (texture) {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            texture.colorSpace = THREE.LinearSRGBColorSpace;
         
    
-        //     const hdriProcessingScene = new THREE.Scene();
-        //     const hdriProcessingCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); 
+            const hdriProcessingScene = new THREE.Scene();
+            const hdriProcessingCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); 
             
  
-        //     const hdriQuad = new THREE.Mesh(
-        //         new THREE.PlaneGeometry(2, 2),
-        //         new THREE.ShaderMaterial({
-        //             uniforms: THREE.UniformsUtils.clone(colorReplacementShader.uniforms),
-        //             vertexShader: colorReplacementShader.vertexShader,
-        //             fragmentShader: colorReplacementShader.fragmentShader,
-        //         })
-        //     );
+            const hdriQuad = new THREE.Mesh(
+                new THREE.PlaneGeometry(2, 2),
+                new THREE.ShaderMaterial({
+                    uniforms: THREE.UniformsUtils.clone(colorReplacementShader.uniforms),
+                    vertexShader: colorReplacementShader.vertexShader,
+                    fragmentShader: colorReplacementShader.fragmentShader,
+                })
+            );
             
-        //     // Set diffrent colors 
-        //     hdriQuad.material.uniforms["tDiffuse"].value = texture;
-        //     hdriQuad.material.uniforms["newGreenColor"].value = new THREE.Color("#261603");
-        //     hdriQuad.material.uniforms["newBlueColor"].value = new THREE.Color("#3a87ba");
+            // Set diffrent colors 
+            hdriQuad.material.uniforms["tDiffuse"].value = texture;
+            hdriQuad.material.uniforms["newGreenColor"].value = new THREE.Color("#261603");
+            hdriQuad.material.uniforms["newBlueColor"].value = new THREE.Color("#3a87ba");
             
-        //     hdriProcessingScene.add(hdriQuad);
+            hdriProcessingScene.add(hdriQuad);
             
-        //     const width = texture.image.width;
-        //     const height = texture.image.height;
-        //     const renderTarget = new THREE.WebGLRenderTarget(width, height, {
-        //         format: THREE.RGBAFormat,
-        //         type: THREE.FloatType
-        //     });
+            const width = texture.image.width;
+            const height = texture.image.height;
+            const renderTarget = new THREE.WebGLRenderTarget(width, height, {
+                format: THREE.RGBAFormat,
+                type: THREE.FloatType
+            });
             
-        //     renderer.setRenderTarget(renderTarget);
-        //     renderer.render(hdriProcessingScene, hdriProcessingCamera);
-        //     renderer.setRenderTarget(null);
+            renderer.setRenderTarget(renderTarget);
+            renderer.render(hdriProcessingScene, hdriProcessingCamera);
+            renderer.setRenderTarget(null);
             
-        //     const processedHDRI = renderTarget.texture;
-        //     processedHDRI.mapping = THREE.EquirectangularReflectionMapping;
+            const processedHDRI = renderTarget.texture;
+            processedHDRI.mapping = THREE.EquirectangularReflectionMapping;
             
-        //     const envMap = pmremGenerator.fromEquirectangular(processedHDRI).texture;
+            const envMap = pmremGenerator.fromEquirectangular(processedHDRI).texture;
             
-        //     scene.environment = envMap;
-        //     scene.background = envMap;
-        //     texture.dispose();
-        //     renderTarget.dispose();
-        //     pmremGenerator.dispose();
-        // });
+            scene.environment = envMap;
+            scene.background = envMap;
+            texture.dispose();
+            renderTarget.dispose();
+            pmremGenerator.dispose();
+        });
 
 
        
