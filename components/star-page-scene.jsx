@@ -53,11 +53,10 @@ const StarPageScene = ({star}) => {
         loader.load('/models/textHolderB.glb', (gltf) => {
             const geometry = gltf.scene.children[0].geometry;
             const material = new THREE.MeshPhysicalMaterial({
-                color: new THREE.Color(0xFFFFFF), //Change for custom color 
-                transmission: 1,
+                color: new THREE.Color(star.color1), //Change for custom color 
                 ior: 1.3,
                 transmission: true,
-                roughness: .8, 
+                roughness: .5, 
 
             });
             const holderObject = new THREE.Mesh(geometry, material)
@@ -72,11 +71,10 @@ const StarPageScene = ({star}) => {
         loader.load('/models/textHolderB.glb', (gltf) => {
             const geometry = gltf.scene.children[0].geometry;
             const material = new THREE.MeshPhysicalMaterial({
-                color: new THREE.Color(0xFFFFFF), //Change for custom color 
-                transmission: 1,
+                color: new THREE.Color(star.color1), //Change for custom color 
                 ior: 1.3,
                 transmission: true,
-                roughness: .8, 
+                roughness: .5, 
 
             });
             const holderObject = new THREE.Mesh(geometry, material)
@@ -91,9 +89,9 @@ const StarPageScene = ({star}) => {
         //Adding project name to top (Remember to add an outline if not visable with specific color pallets)
         const projectName = new Text();
         projectName.material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,  
+            color: star.color2,  
             roughness: 0.5,   
-            emissive: new THREE.Color(0xFFFFFF),  //Change for custom color 
+            emissive: new THREE.Color(star.color4),  //Change for custom color 
             emissiveIntensity: 1, 
         });
         projectName.text = star.name;
@@ -102,6 +100,7 @@ const StarPageScene = ({star}) => {
         projectName.anchorX = 1;
         projectName.anchorY = -1.8;
         projectName.position.set(0,0,1.6)
+        projectName.maxWidth = 3.5;  
         projectName.rotation.set(Math.PI / 1.02, -Math.PI / 1.02, -Math.PI / 1)
 
         scene.add(projectName);
@@ -109,9 +108,9 @@ const StarPageScene = ({star}) => {
         //Adding text description 
         const projectDescription = new Text();
         projectDescription.material = new THREE.MeshStandardMaterial({
-            color: 0xffffff,  
+            color: star.color2,  
             roughness: 0.5,   
-            emissive: new THREE.Color(0xFFFFFF),  //Change for custom color 
+            emissive: new THREE.Color(star.color2),  //Change for custom color 
             emissiveIntensity: 1, 
         });
         projectDescription.text = star.description;
@@ -130,18 +129,19 @@ const StarPageScene = ({star}) => {
 
         //Back button 
         const goBack = new Text();
-        goBack.color = new THREE.Color(0xffffff);
+        goBack.color = new THREE.Color(star.color1);
         goBack.fillOpacity = 0.4;
-        goBack.emissive = new THREE.Color(0xffffff);
+        goBack.emissive = new THREE.Color(star.color1);
         goBack.emissiveIntensity = 1;
         goBack.text = "Go Back >";
+        goBack.font = '/fonts/AlbertusMTStd.otf';
         goBack.position.set(0,0,1.1)
         goBack.anchorX = -3;
         goBack.anchorY = 1.9;
         goBack.fontSize = .25;
         goBack.fillOpacity = .4;
         goBack.outlineWidth = .01;
-        goBack.outlineColor = new THREE.Color(0x000000);
+        goBack.outlineColor = new THREE.Color(star.color4);
         scene.add(goBack);
 
         //On MouseClick (Add function to to go back button)
@@ -193,7 +193,7 @@ const StarPageScene = ({star}) => {
 
 
         //Basic lighting 
-        const light = new THREE.DirectionalLight(0x404040,70);
+        const light = new THREE.DirectionalLight(star.color1,10);
         light.target = projectName
         light.position.set(0,0,-1);
         scene.add(light);
@@ -206,10 +206,11 @@ const StarPageScene = ({star}) => {
         //         "blueColor": { value: new THREE.Color("#7C8FFF") },  // Original blue color to replace
         //         "newGreenColor": { value: new THREE.Color("#f20505") },  // New color to replace green 
         //         "newBlueColor": { value: new THREE.Color("#0511f2") },  // New color to replace blue
-        //         "greenColorRange": { value: 1 },     // Tolerance for green colors
+        //         "greenColorRange": { value: .1 },     // Tolerance for green colors
         //         "blueColorRange": { value: 1 },      // Tolerance for blue colors
         //         "greenHueRange": { value: .5 },      // Hue range for detecting greens
-        //         "blueHueRange": { value: .5 }        // Hue range for detecting blues
+        //         "blueHueRange": { value: .5 },        // Hue range for detecting blues
+        //         "exposure": { value: .5 }             // Exposure 
         //     },
         //     vertexShader: `
         //         varying vec2 vUv;
@@ -228,11 +229,12 @@ const StarPageScene = ({star}) => {
         //         uniform float blueColorRange;
         //         uniform float greenHueRange;
         //         uniform float blueHueRange;
+        //         uniform float exposure;   // NEW: Exposure uniform
         //         varying vec2 vUv;
                 
         //         // Convert RGB to HSV for better color identification
         //         vec3 rgb2hsv(vec3 c) {
-        //             vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+        //             vec4 K = vec4(0.0, -1.0/3.0, 2.0/3.0, -1.0);
         //             vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
         //             vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
                 
@@ -243,12 +245,11 @@ const StarPageScene = ({star}) => {
                 
         //         // Convert HSV to RGB
         //         vec3 hsv2rgb(vec3 c) {
-        //             vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        //             vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
         //             vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
         //             return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
         //         }
                 
-        //         // Calculate the hue difference considering the circular nature of hue
         //         float hueDistance(float h1, float h2) {
         //             float diff = abs(h1 - h2);
         //             return min(diff, 1.0 - diff);
@@ -258,61 +259,49 @@ const StarPageScene = ({star}) => {
         //             vec4 texel = texture2D(tDiffuse, vUv);
         //             vec3 color = texel.rgb;
                     
-        //             // Convert the pixel color to HSV
         //             vec3 pixelHSV = rgb2hsv(color);
                     
-        //             // Convert target colors to HSV
         //             vec3 greenHSV = rgb2hsv(greenColor);
         //             vec3 blueHSV = rgb2hsv(blueColor);
         //             vec3 newGreenHSV = rgb2hsv(newGreenColor);
         //             vec3 newBlueHSV = rgb2hsv(newBlueColor);
                     
-        //             // Check if the pixel is in the green range (using hue as the primary identifier)
         //             float greenHueDist = hueDistance(pixelHSV.x, greenHSV.x);
-        //             if (greenHueDist < greenHueRange && pixelHSV.y > 0.15) {  // Only consider saturated colors
-        //                 // Calculate how close it is to the target green hue
+        //             if (greenHueDist < greenHueRange && pixelHSV.y > 0.15) {
         //                 float blendFactor = 1.0 - (greenHueDist / greenHueRange);
         //                 blendFactor = smoothstep(0.0, 1.0, blendFactor);
                         
-        //                 // Create a new color with the target hue and saturation but preserve brightness
         //                 vec3 newColorHSV = vec3(
-        //                     newGreenHSV.x,       // New hue
-        //                     mix(pixelHSV.y, newGreenHSV.y, 0.7),  // Blend saturation (70% new, 30% original)
-        //                     pixelHSV.z           // Preserve original brightness
+        //                     newGreenHSV.x,
+        //                     mix(pixelHSV.y, newGreenHSV.y, 0.7),
+        //                     pixelHSV.z
         //                 );
-                        
-        //                 // Convert back to RGB
         //                 vec3 newColorRGB = hsv2rgb(newColorHSV);
-                        
-        //                 // Apply the color change with the calculated blend factor
         //                 color = mix(color, newColorRGB, blendFactor);
         //             }
                     
-        //             // Check if the pixel is in the blue range (using hue as the primary identifier)
         //             float blueHueDist = hueDistance(pixelHSV.x, blueHSV.x);
-        //             if (blueHueDist < blueHueRange && pixelHSV.y > 0.15) {  // Only consider saturated colors
-        //                 // Calculate how close it is to the target blue hue
+        //             if (blueHueDist < blueHueRange && pixelHSV.y > 0.15) {
         //                 float blendFactor = 1.0 - (blueHueDist / blueHueRange);
         //                 blendFactor = smoothstep(0.0, 1.0, blendFactor);
                         
-        //                 // Create a new color with the target hue and saturation but preserve brightness
         //                 vec3 newColorHSV = vec3(
-        //                     newBlueHSV.x,        // New hue
-        //                     mix(pixelHSV.y, newBlueHSV.y, 0.7),   // Blend saturation (70% new, 30% original)
-        //                     pixelHSV.z           // Preserve original brightness
+        //                     newBlueHSV.x,
+        //                     mix(pixelHSV.y, newBlueHSV.y, 0.7),
+        //                     pixelHSV.z
         //                 );
-                        
-        //                 // Convert back to RGB
         //                 vec3 newColorRGB = hsv2rgb(newColorHSV);
-                        
-        //                 // Apply the color change with the calculated blend factor
         //                 color = mix(color, newColorRGB, blendFactor);
         //             }
+        
+        //             // Apply exposure adjustment
+        //             color *= exposure;
                     
         //             gl_FragColor = vec4(color, texel.a);
         //         }
         //     `
         // };
+        
         
         
         
@@ -346,8 +335,10 @@ const StarPageScene = ({star}) => {
             
             // Set diffrent colors 
             hdriQuad.material.uniforms["tDiffuse"].value = texture;
-            hdriQuad.material.uniforms["newGreenColor"].value = new THREE.Color("#261603");
-            hdriQuad.material.uniforms["newBlueColor"].value = new THREE.Color("#3a87ba");
+            hdriQuad.material.uniforms["newGreenColor"].value = new THREE.Color(star.color3);
+            hdriQuad.material.uniforms["newBlueColor"].value = new THREE.Color(star.color2);
+
+           
             
             hdriProcessingScene.add(hdriQuad);
             
