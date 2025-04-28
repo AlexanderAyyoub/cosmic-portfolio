@@ -50,13 +50,14 @@ const HomeScene = ({stars}) => {
         camera.position.set(0, 0, 0);
         
         //Light
-        const light = new THREE.DirectionalLight(0x404040,7);
+        const light = new THREE.DirectionalLight(0x404040,20);
         light.castShadow = true;
         light.position.set(-3,3,-10);
         scene.add(light);
 
         const lightHelper = new THREE.DirectionalLightHelper(light);
         scene.add(lightHelper)
+
 
         
 
@@ -97,24 +98,24 @@ const HomeScene = ({stars}) => {
 
         //Adding gltf File 
         const loader = new GLTFLoader();
-        // const dracoLoader = new DRACOLoader();
-        // dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-        // loader.setDRACOLoader(dracoLoader);
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        loader.setDRACOLoader(dracoLoader);
 
-        // loader.load('/models/test6.glb', (gltf) => {
-        //     const mesh = gltf.scene;
-        //     scene.add(mesh);
-        //     mesh.position.copy(camera.position);
-        //     mesh.position.y += -1.4;
-        //     mesh.traverse((node) => {
+        loader.load('/models/desertPlatform.glb', (gltf) => {
+            const mesh = gltf.scene;
+            scene.add(mesh);
+            mesh.position.copy(camera.position);
+            mesh.position.y += -1.4;
+            mesh.traverse((node) => {
 
-        //         if (node.isMesh) {
-        //             node.castShadow = true;   
-        //             node.receiveShadow = true; 
-        //         }
-        //     });
+                if (node.isMesh) {
+                    node.castShadow = true;   
+                    node.receiveShadow = true; 
+                }
+            });
             
-        // });
+        });
 
 
 
