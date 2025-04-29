@@ -4,14 +4,13 @@ import { EXRLoader } from 'three/examples/jsm/Addons.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
+import { EffectComposer, EffectPass, RenderPass, DepthOfFieldEffect } from 'postprocessing';
 import * as THREE from 'three';
 
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
 import { Text } from 'troika-three-text'; 
-import { geometry } from 'drizzle-orm/pg-core';
-import { transmission } from 'three/tsl';
 
 
 
@@ -42,6 +41,20 @@ const StarPageScene = ({star}) => {
 
         camera.position.set(0, 0, 0);
 
+        scene.fog = new THREE.FogExp2( star.color1, 0.008 );
+
+        //Adding Depth of Field post proccesing 
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+
+        const dofEffect = new DepthOfFieldEffect(camera, {
+            focalLength: .4,      
+            bokehScale: 4,         
+        });
+
+        const effectPass = new EffectPass(camera, dofEffect);
+        effectPass.renderToScreen = true;
+        composer.addPass(effectPass);
 
         //Text holder object 
         const loader = new GLTFLoader();
@@ -53,8 +66,8 @@ const StarPageScene = ({star}) => {
         loader.load(star.modleName, (gltf) => {
             const mesh = gltf.scene;
             scene.add(mesh);
-            mesh.position.set(-80,-5,-140)
-            mesh.scale.set(60,60,60)
+            mesh.position.set(-80,-10,-140)
+            mesh.scale.set(70,70,70)
         });
 
         //Adding video plane
@@ -99,11 +112,12 @@ const StarPageScene = ({star}) => {
         
         //Adding project name to top (Remember to add an outline if not visable with specific color pallets)
         const projectName = new Text();
-        projectName.material = new THREE.MeshStandardMaterial({
-            color: star.color2,  
+        projectName.material = new THREE.MeshBasicMaterial({
+            color: star.color4,  
             roughness: 0.5,   
             emissive: new THREE.Color(star.color4),  //Change for custom color 
             emissiveIntensity: 1, 
+            envMap: null,
         });
         projectName.text = star.name;
         projectName.font = '/fonts/AlbertusMTStd.otf';
@@ -118,11 +132,12 @@ const StarPageScene = ({star}) => {
 
         //Adding text description 
         const projectDescription = new Text();
-        projectDescription.material = new THREE.MeshStandardMaterial({
+        projectDescription.material = new THREE.MeshBasicMaterial({
             color: star.color2,  
             roughness: 0.5,   
             emissive: new THREE.Color(star.color2),  //Change for custom color 
-            emissiveIntensity: 1, 
+            emissiveIntensity: 1,
+            envMap: null, 
         });
         projectDescription.text = star.description;
         projectDescription.font = '/fonts/ABCArizonaFlare-Regular-Trial.otf';
@@ -210,108 +225,108 @@ const StarPageScene = ({star}) => {
         // scene.add(light);
 
         //Adding color replacement shader 
-        // const colorReplacementShader = {
-        //     uniforms: {
-        //         "tDiffuse": { value: null },  // Input HDRI texture
-        //         "greenColor": { value: new THREE.Color("#0C2B09") },  // Original green color to replace
-        //         "blueColor": { value: new THREE.Color("#7C8FFF") },  // Original blue color to replace
-        //         "newGreenColor": { value: new THREE.Color("#f20505") },  // New color to replace green 
-        //         "newBlueColor": { value: new THREE.Color("#0511f2") },  // New color to replace blue
-        //         "greenColorRange": { value: .1 },     // Tolerance for green colors
-        //         "blueColorRange": { value: 1 },      // Tolerance for blue colors
-        //         "greenHueRange": { value: .5 },      // Hue range for detecting greens
-        //         "blueHueRange": { value: .5 },        // Hue range for detecting blues
-        //         "exposure": { value: .5 }             // Exposure 
-        //     },
-        //     vertexShader: `
-        //         varying vec2 vUv;
-        //         void main() {
-        //             vUv = uv;
-        //             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        //         }
-        //     `,
-        //     fragmentShader: `
-        //         uniform sampler2D tDiffuse;
-        //         uniform vec3 greenColor;
-        //         uniform vec3 blueColor;
-        //         uniform vec3 newGreenColor;
-        //         uniform vec3 newBlueColor;
-        //         uniform float greenColorRange;
-        //         uniform float blueColorRange;
-        //         uniform float greenHueRange;
-        //         uniform float blueHueRange;
-        //         uniform float exposure;   // NEW: Exposure uniform
-        //         varying vec2 vUv;
+        const colorReplacementShader = {
+            uniforms: {
+                "tDiffuse": { value: null },  // Input HDRI texture
+                "greenColor": { value: new THREE.Color("#0C2B09") },  // Original green color to replace
+                "blueColor": { value: new THREE.Color("#7C8FFF") },  // Original blue color to replace
+                "newGreenColor": { value: new THREE.Color("#f20505") },  // New color to replace green 
+                "newBlueColor": { value: new THREE.Color("#0511f2") },  // New color to replace blue
+                "greenColorRange": { value: .1 },     // Tolerance for green colors
+                "blueColorRange": { value: 1 },      // Tolerance for blue colors
+                "greenHueRange": { value: .5 },      // Hue range for detecting greens
+                "blueHueRange": { value: .5 },        // Hue range for detecting blues
+                "exposure": { value: .5 }             // Exposure 
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D tDiffuse;
+                uniform vec3 greenColor;
+                uniform vec3 blueColor;
+                uniform vec3 newGreenColor;
+                uniform vec3 newBlueColor;
+                uniform float greenColorRange;
+                uniform float blueColorRange;
+                uniform float greenHueRange;
+                uniform float blueHueRange;
+                uniform float exposure;   // NEW: Exposure uniform
+                varying vec2 vUv;
                 
-        //         // Convert RGB to HSV for better color identification
-        //         vec3 rgb2hsv(vec3 c) {
-        //             vec4 K = vec4(0.0, -1.0/3.0, 2.0/3.0, -1.0);
-        //             vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-        //             vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+                // Convert RGB to HSV for better color identification
+                vec3 rgb2hsv(vec3 c) {
+                    vec4 K = vec4(0.0, -1.0/3.0, 2.0/3.0, -1.0);
+                    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+                    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
                 
-        //             float d = q.x - min(q.w, q.y);
-        //             float e = 1.0e-10;
-        //             return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-        //         }
+                    float d = q.x - min(q.w, q.y);
+                    float e = 1.0e-10;
+                    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+                }
                 
-        //         // Convert HSV to RGB
-        //         vec3 hsv2rgb(vec3 c) {
-        //             vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
-        //             vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-        //             return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-        //         }
+                // Convert HSV to RGB
+                vec3 hsv2rgb(vec3 c) {
+                    vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+                    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+                }
                 
-        //         float hueDistance(float h1, float h2) {
-        //             float diff = abs(h1 - h2);
-        //             return min(diff, 1.0 - diff);
-        //         }
+                float hueDistance(float h1, float h2) {
+                    float diff = abs(h1 - h2);
+                    return min(diff, 1.0 - diff);
+                }
                 
-        //         void main() {
-        //             vec4 texel = texture2D(tDiffuse, vUv);
-        //             vec3 color = texel.rgb;
+                void main() {
+                    vec4 texel = texture2D(tDiffuse, vUv);
+                    vec3 color = texel.rgb;
                     
-        //             vec3 pixelHSV = rgb2hsv(color);
+                    vec3 pixelHSV = rgb2hsv(color);
                     
-        //             vec3 greenHSV = rgb2hsv(greenColor);
-        //             vec3 blueHSV = rgb2hsv(blueColor);
-        //             vec3 newGreenHSV = rgb2hsv(newGreenColor);
-        //             vec3 newBlueHSV = rgb2hsv(newBlueColor);
+                    vec3 greenHSV = rgb2hsv(greenColor);
+                    vec3 blueHSV = rgb2hsv(blueColor);
+                    vec3 newGreenHSV = rgb2hsv(newGreenColor);
+                    vec3 newBlueHSV = rgb2hsv(newBlueColor);
                     
-        //             float greenHueDist = hueDistance(pixelHSV.x, greenHSV.x);
-        //             if (greenHueDist < greenHueRange && pixelHSV.y > 0.15) {
-        //                 float blendFactor = 1.0 - (greenHueDist / greenHueRange);
-        //                 blendFactor = smoothstep(0.0, 1.0, blendFactor);
+                    float greenHueDist = hueDistance(pixelHSV.x, greenHSV.x);
+                    if (greenHueDist < greenHueRange && pixelHSV.y > 0.15) {
+                        float blendFactor = 1.0 - (greenHueDist / greenHueRange);
+                        blendFactor = smoothstep(0.0, 1.0, blendFactor);
                         
-        //                 vec3 newColorHSV = vec3(
-        //                     newGreenHSV.x,
-        //                     mix(pixelHSV.y, newGreenHSV.y, 0.7),
-        //                     pixelHSV.z
-        //                 );
-        //                 vec3 newColorRGB = hsv2rgb(newColorHSV);
-        //                 color = mix(color, newColorRGB, blendFactor);
-        //             }
+                        vec3 newColorHSV = vec3(
+                            newGreenHSV.x,
+                            mix(pixelHSV.y, newGreenHSV.y, 0.7),
+                            pixelHSV.z
+                        );
+                        vec3 newColorRGB = hsv2rgb(newColorHSV);
+                        color = mix(color, newColorRGB, blendFactor);
+                    }
                     
-        //             float blueHueDist = hueDistance(pixelHSV.x, blueHSV.x);
-        //             if (blueHueDist < blueHueRange && pixelHSV.y > 0.15) {
-        //                 float blendFactor = 1.0 - (blueHueDist / blueHueRange);
-        //                 blendFactor = smoothstep(0.0, 1.0, blendFactor);
+                    float blueHueDist = hueDistance(pixelHSV.x, blueHSV.x);
+                    if (blueHueDist < blueHueRange && pixelHSV.y > 0.15) {
+                        float blendFactor = 1.0 - (blueHueDist / blueHueRange);
+                        blendFactor = smoothstep(0.0, 1.0, blendFactor);
                         
-        //                 vec3 newColorHSV = vec3(
-        //                     newBlueHSV.x,
-        //                     mix(pixelHSV.y, newBlueHSV.y, 0.7),
-        //                     pixelHSV.z
-        //                 );
-        //                 vec3 newColorRGB = hsv2rgb(newColorHSV);
-        //                 color = mix(color, newColorRGB, blendFactor);
-        //             }
+                        vec3 newColorHSV = vec3(
+                            newBlueHSV.x,
+                            mix(pixelHSV.y, newBlueHSV.y, 0.7),
+                            pixelHSV.z
+                        );
+                        vec3 newColorRGB = hsv2rgb(newColorHSV);
+                        color = mix(color, newColorRGB, blendFactor);
+                    }
         
-        //             // Apply exposure adjustment
-        //             color *= exposure;
+                    // Apply exposure adjustment
+                    color *= exposure;
                     
-        //             gl_FragColor = vec4(color, texel.a);
-        //         }
-        //     `
-        // };
+                    gl_FragColor = vec4(color, texel.a);
+                }
+            `
+        };
         
         
         
@@ -347,7 +362,7 @@ const StarPageScene = ({star}) => {
             // Set diffrent colors 
             hdriQuad.material.uniforms["tDiffuse"].value = texture;
             hdriQuad.material.uniforms["newGreenColor"].value = new THREE.Color(star.color3);
-            hdriQuad.material.uniforms["newBlueColor"].value = new THREE.Color(star.color2);
+            hdriQuad.material.uniforms["newBlueColor"].value = new THREE.Color(star.color1);
 
            
             
@@ -496,11 +511,30 @@ const StarPageScene = ({star}) => {
             renderer.render(scene, camera);
             renderer.setAnimationLoop(animate);
             stats.update();
+            composer.render()
 
 
             
         }
         animate()
+
+
+        //Dispose all elements (pervents memory build up when refreshing)
+        function disposeAll() {
+            scene.traverse(object => {
+              if (object.isMesh) {
+                object.geometry.dispose();
+                if (Array.isArray(object.material)) {
+                  object.material.forEach(m => m.dispose());
+                } else {
+                  object.material.dispose();
+                }
+              }
+            });
+            renderer.dispose();
+          }
+          
+          window.addEventListener('beforeunload', disposeAll);
     })
     return (
         <div style={{ width: "100%", height: "100%" }}></div>
