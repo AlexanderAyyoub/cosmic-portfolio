@@ -49,6 +49,17 @@ const StarPageScene = ({star}) => {
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         loader.setDRACOLoader(dracoLoader);
 
+        //Large Star 
+        loader.load(star.modleName, (gltf) => {
+            const mesh = gltf.scene;
+            scene.add(mesh);
+            mesh.position.set(-80,-5,-140)
+            mesh.scale.set(60,60,60)
+        });
+
+        //Adding video plane
+        
+
         //Body bottom 
         loader.load('/models/textHolderB.glb', (gltf) => {
             const geometry = gltf.scene.children[0].geometry;
@@ -193,10 +204,10 @@ const StarPageScene = ({star}) => {
 
 
         //Basic lighting 
-        const light = new THREE.DirectionalLight(star.color1,10);
-        light.target = projectName
-        light.position.set(0,0,-1);
-        scene.add(light);
+        // const light = new THREE.DirectionalLight(star.color1,10);
+        // light.target = projectName
+        // light.position.set(0,0,-1);
+        // scene.add(light);
 
         //Adding color replacement shader 
         // const colorReplacementShader = {
