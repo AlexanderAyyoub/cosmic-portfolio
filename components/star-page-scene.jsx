@@ -71,31 +71,58 @@ const StarPageScene = ({star}) => {
         });
 
         //Adding video plane
-        // Create a video element
         const video = document.createElement('video');
-        video.src = star.solarFlareGIF;  // Path to your WebM video
-        video.crossOrigin = 'anonymous';  // Important for CORS if hosted externally
-        video.loop = true;  // Loop the video
-        video.muted = true; // Mute it to allow autoplay
-        video.play();  // Start playing the video immediately
+        video.src = star.solarFlareGIF;
+        video.crossOrigin = 'anonymous';
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.autoplay = true;
 
-        // Create a VideoTexture from the video element
-        const videoTexture = new THREE.VideoTexture(video);
-
-        // Create a material that uses the VideoTexture
-        const material = new THREE.MeshBasicMaterial({
-        map: videoTexture,
-        transparent: true,  // Enable transparency
-        side: THREE.DoubleSide  // Make the material visible from both sides
+        video.addEventListener('loadeddata', () => {
+        video.play();
         });
 
-        // Create a plane geometry and apply the material
-        const geometry = new THREE.PlaneGeometry(2, 2);  // Adjust the size as needed
-        const plane = new THREE.Mesh(geometry, material);
-        plane.position.set(.48,1.8,1.2)
+        const videoTexture = new THREE.VideoTexture(video);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBFormat;
+        videoTexture.generateMipmaps = false;
 
-        // Add the plane to the scene
+        const material = new THREE.ShaderMaterial({
+        uniforms: {
+            map: { value: videoTexture },
+            threshold: { value: 0.1 } // Controls how dark a pixel must be to be treated as transparent
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform sampler2D map;
+            uniform float threshold;
+            varying vec2 vUv;
+
+            void main() {
+            vec4 color = texture2D(map, vUv);
+            float brightness = dot(color.rgb, vec3(0.299, 0.587, 0.114)); // perceived brightness
+            if (brightness < threshold) discard;  // discard dark pixels (make transparent)
+            gl_FragColor = color;
+            }
+        `,
+        transparent: true,
+        side: THREE.DoubleSide
+        });
+
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const plane = new THREE.Mesh(geometry, material);
+        plane.position.set(0.48, 1.8, 1.2);
         scene.add(plane);
+
+
 
 
         

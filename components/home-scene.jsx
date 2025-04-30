@@ -33,7 +33,8 @@ const HomeScene = ({stars}) => {
 
         renderer.setSize(windowW, windowH);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFShadowMap;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
 
         
 
@@ -57,6 +58,10 @@ const HomeScene = ({stars}) => {
 
         const lightHelper = new THREE.DirectionalLightHelper(light);
         scene.add(lightHelper)
+
+        //Fixing the line issue
+        light.shadow.mapSize.width = 4096;
+        light.shadow.mapSize.height = 4096;
 
 
         
