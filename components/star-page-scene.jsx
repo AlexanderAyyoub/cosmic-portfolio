@@ -71,8 +71,34 @@ const StarPageScene = ({star}) => {
         });
 
         //Adding video plane
-        
+        // Create a video element
+        const video = document.createElement('video');
+        video.src = star.solarFlareGIF;  // Path to your WebM video
+        video.crossOrigin = 'anonymous';  // Important for CORS if hosted externally
+        video.loop = true;  // Loop the video
+        video.muted = true; // Mute it to allow autoplay
+        video.play();  // Start playing the video immediately
 
+        // Create a VideoTexture from the video element
+        const videoTexture = new THREE.VideoTexture(video);
+
+        // Create a material that uses the VideoTexture
+        const material = new THREE.MeshBasicMaterial({
+        map: videoTexture,
+        transparent: true,  // Enable transparency
+        side: THREE.DoubleSide  // Make the material visible from both sides
+        });
+
+        // Create a plane geometry and apply the material
+        const geometry = new THREE.PlaneGeometry(2, 2);  // Adjust the size as needed
+        const plane = new THREE.Mesh(geometry, material);
+        plane.position.set(.48,1.8,1.2)
+
+        // Add the plane to the scene
+        scene.add(plane);
+
+
+        
         //Body bottom 
         loader.load('/models/textHolderB.glb', (gltf) => {
             const geometry = gltf.scene.children[0].geometry;
