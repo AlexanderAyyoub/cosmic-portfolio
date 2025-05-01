@@ -51,7 +51,7 @@ const HomeScene = ({stars}) => {
         camera.position.set(0, 0, 0);
         
         //Light
-        const light = new THREE.DirectionalLight(0x404040,20);
+        const light = new THREE.DirectionalLight(0x404040,5);
         light.castShadow = true;
         light.position.set(-3,3,-10);
         scene.add(light);
@@ -107,7 +107,7 @@ const HomeScene = ({stars}) => {
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         loader.setDRACOLoader(dracoLoader);
 
-        loader.load('/models/desertPlatform.glb', (gltf) => {
+        loader.load('/models/grassPlatform.glb', (gltf) => {
             const mesh = gltf.scene;
             scene.add(mesh);
             mesh.position.copy(camera.position);

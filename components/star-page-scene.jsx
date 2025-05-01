@@ -90,39 +90,53 @@ const StarPageScene = ({star}) => {
         videoTexture.generateMipmaps = false;
 
         const material = new THREE.ShaderMaterial({
-            uniforms: {
-              map: { value: videoTexture },
-              threshold: { value: 0.1 } 
-            },
-            vertexShader: `
-              varying vec2 vUv;
-              void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-              }
-            `,
-            fragmentShader: `
-              uniform sampler2D map;
-              uniform float threshold;
-              varying vec2 vUv;
-          
-              void main() {
-                vec4 color = texture2D(map, vUv);
-                float brightness = dot(color.rgb, vec3(0.299, 0.587, 0.114)); 
-                float alpha = smoothstep(threshold, 1.0, brightness); 
-                gl_FragColor = vec4(color.rgb, alpha);
-              }
-            `,
-            transparent: true,
-            side: THREE.DoubleSide
-          });
-          
+        uniforms: {
+            map: { value: videoTexture },
+            threshold: { value: 0.1 }, // more or less black area
+            darkColor: { value: new THREE.Color(0x000000) },  // Default black
+            lightColor: { value: new THREE.Color(0xffffff) }  // Default white
+        },
+        vertexShader: `
+            varying vec2 vUv;
+            void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform sampler2D map;
+            uniform float threshold;
+            uniform vec3 darkColor;
+            uniform vec3 lightColor;
+            varying vec2 vUv;
+
+            void main() {
+            vec4 texColor = texture2D(map, vUv);
+            float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+            float mixFactor = smoothstep(threshold, 1.0, brightness);
+            vec3 resultColor = mix(darkColor, lightColor, mixFactor);
+
+            // Make alpha depend on brightness
+            float alpha = smoothstep(threshold, 1.0, brightness); // fade in based on threshold
+            gl_FragColor = vec4(resultColor, alpha);
+            }
+        `,
+        transparent: true,
+        side: THREE.DoubleSide
+        });
 
         const geometry = new THREE.PlaneGeometry(2, 2);
         const plane = new THREE.Mesh(geometry, material);
-        plane.position.set(0.48, 1.8, 1.2);
-        scene.add(plane);
+        plane.position.set(-62, -6, -110);
+        plane.scale.set(150, 120, 160);
+        plane.lookAt(camera.position);
 
+        material.uniforms.darkColor.value.set(star.color2);
+        material.uniforms.lightColor.value.set(star.color1); 
+        material.uniforms.threshold.value = .001; // show more dark areas
+
+
+        scene.add(plane);
 
 
 
@@ -134,7 +148,7 @@ const StarPageScene = ({star}) => {
                 color: new THREE.Color(star.color1), //Change for custom color 
                 ior: 1.3,
                 transmission: true,
-                roughness: .5, 
+                roughness: .8, 
 
             });
             const holderObject = new THREE.Mesh(geometry, material)
