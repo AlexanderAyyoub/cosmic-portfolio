@@ -90,32 +90,33 @@ const StarPageScene = ({star}) => {
         videoTexture.generateMipmaps = false;
 
         const material = new THREE.ShaderMaterial({
-        uniforms: {
-            map: { value: videoTexture },
-            threshold: { value: 0.1 } // Controls how dark a pixel must be to be treated as transparent
-        },
-        vertexShader: `
-            varying vec2 vUv;
-            void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `,
-        fragmentShader: `
-            uniform sampler2D map;
-            uniform float threshold;
-            varying vec2 vUv;
-
-            void main() {
-            vec4 color = texture2D(map, vUv);
-            float brightness = dot(color.rgb, vec3(0.299, 0.587, 0.114)); // perceived brightness
-            if (brightness < threshold) discard;  // discard dark pixels (make transparent)
-            gl_FragColor = color;
-            }
-        `,
-        transparent: true,
-        side: THREE.DoubleSide
-        });
+            uniforms: {
+              map: { value: videoTexture },
+              threshold: { value: 0.1 } 
+            },
+            vertexShader: `
+              varying vec2 vUv;
+              void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform sampler2D map;
+              uniform float threshold;
+              varying vec2 vUv;
+          
+              void main() {
+                vec4 color = texture2D(map, vUv);
+                float brightness = dot(color.rgb, vec3(0.299, 0.587, 0.114)); 
+                float alpha = smoothstep(threshold, 1.0, brightness); 
+                gl_FragColor = vec4(color.rgb, alpha);
+              }
+            `,
+            transparent: true,
+            side: THREE.DoubleSide
+          });
+          
 
         const geometry = new THREE.PlaneGeometry(2, 2);
         const plane = new THREE.Mesh(geometry, material);
