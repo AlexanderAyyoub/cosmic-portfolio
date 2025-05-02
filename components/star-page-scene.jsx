@@ -67,7 +67,7 @@ const StarPageScene = ({star}) => {
             const mesh = gltf.scene;
             scene.add(mesh);
             mesh.position.set(-80,-10,-140)
-            mesh.scale.set(70,70,70)
+            mesh.scale.set(65,65,65)
         });
 
         //Adding video plane
@@ -127,8 +127,8 @@ const StarPageScene = ({star}) => {
 
         const geometry = new THREE.PlaneGeometry(2, 2);
         const plane = new THREE.Mesh(geometry, material);
-        plane.position.set(-62, -6, -110);
-        plane.scale.set(150, 120, 160);
+        plane.position.set(-53, -6, -90);
+        plane.scale.set(110, 90, 130);
         plane.lookAt(camera.position);
 
         material.uniforms.darkColor.value.set(star.color2);
@@ -166,7 +166,7 @@ const StarPageScene = ({star}) => {
                 color: new THREE.Color(star.color1), //Change for custom color 
                 ior: 1.3,
                 transmission: true,
-                roughness: .5, 
+                roughness: .8, 
 
             });
             const holderObject = new THREE.Mesh(geometry, material)

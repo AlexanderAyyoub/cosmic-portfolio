@@ -30,16 +30,12 @@ const HomeScene = ({stars}) => {
         const renderer = new THREE.WebGLRenderer();
         const textureLoader = new THREE.TextureLoader();
 
-
         renderer.setSize(windowW, windowH);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-
-        
-
         //This puts it int HTML format 
-        document.body.appendChild( renderer.domElement)
+        document.body.appendChild(renderer.domElement)
 
         //Makes sure theres no scroll bars and fully fits screen(using css canvas) 
         renderer.domElement.style.display = 'block';
@@ -63,9 +59,6 @@ const HomeScene = ({stars}) => {
         light.shadow.mapSize.width = 4096;
         light.shadow.mapSize.height = 4096;
 
-
-        
-
         //FPS counter
         const stats = Stats()
         document.body.appendChild(stats.dom)
@@ -74,20 +67,8 @@ const HomeScene = ({stars}) => {
         const starArray = getStarfield({numStars: 500});
         scene.add(starArray);
 
-        //Trying hdri 
-        // const hdriLoader = new EXRLoader()
-        // hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
-        // texture.mapping = THREE.EquirectangularReflectionMapping;
-        // scene.background = texture;
-        // scene.environment = texture;
-        // });
-        // renderer.outputColorSpace = THREE.SRGBColorSpace;
-        // renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        // renderer.toneMappingExposure = 2;
-
-
         //Adding camera controls 
-        const controls = new PointerLockControls( camera, document.body);
+        const controls = new PointerLockControls(camera, document.body);
         controls.pointerSpeed = 0.4;
      
         document.addEventListener('mousedown', () => {
@@ -98,8 +79,16 @@ const HomeScene = ({stars}) => {
             controls.unlock();
         });
 
-    
-        
+        // Trying hdri 
+        const hdriLoader = new EXRLoader()
+        hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.background = texture;
+        scene.environment = texture;
+        });
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 2;
 
         //Adding gltf File 
         const loader = new GLTFLoader();
@@ -113,47 +102,31 @@ const HomeScene = ({stars}) => {
             mesh.position.copy(camera.position);
             mesh.position.y += -1.4;
             mesh.traverse((node) => {
-
                 if (node.isMesh) {
                     node.castShadow = true;   
                     node.receiveShadow = true; 
                 }
             });
-            
         });
 
-
-
-        
-
         //POPULATING SCENE WITH PROJECT STARS 
-        const allStarObjects = []
+        const allStarObjects = [];
+        const textMeshes = new Map(); // Map to store text meshes by star ID
 
         if (stars && stars.length > 0) {
             stars.forEach(star => {
                 const geometry = new THREE.SphereGeometry();
-                // loader.load('/models/starMesh.glb', (gltf) => {
-                //     const geometry = gltf.scene.children[0].geometry;
-
-                //     const material = new THREE.MeshStandardMaterial({
-                //         color: new THREE.Color(0xffffff), //Change for custom color 
-                //         emissive: new THREE.Color(0x0927e6), //Change for custom color
-                //         emissiveIntensity: 4,
-                //     });
-
+                
                 const material = new THREE.MeshStandardMaterial({
-                    color: new THREE.Color(0xffffff), //Change for custom color 
-                    emissive: new THREE.Color(0x0927e6), //Change for custom color
+                    color: new THREE.Color(star.color2),
+                    emissive: new THREE.Color(star.color1),
                     emissiveIntensity: 4,
                 });
                 
-                
-
-
                 const starObject = new THREE.Mesh(geometry, material);
                 
                 starObject.position.set(star.xPosition, star.yPosition, star.zPosition);
-                starObject.scale.set(star.size,star.size,star.size);
+                starObject.scale.set(star.size, star.size, star.size);
                 scene.add(starObject);
 
                 starObject.userData.starID = star.starID;
@@ -163,13 +136,10 @@ const HomeScene = ({stars}) => {
                 starObject.userData.zPosition = star.zPosition;
                 starObject.userData.name = star.name;
 
-
-
-
                 allStarObjects.push(starObject);
 
                 // Add lens flare 
-                const starLight = new THREE.PointLight(0xffffff, 1); // Change for custom color
+                const starLight = new THREE.PointLight(0xffffff, 1);
                 starLight.position.set(star.xPosition, star.yPosition, star.zPosition);
 
                 const textureFlares = Array.from({ length: 10 }, (_, i) => 
@@ -177,39 +147,45 @@ const HomeScene = ({stars}) => {
                 );
 
                 const randomTexture = textureFlares[Math.floor(Math.random() * textureFlares.length)];
-
-                const randomRotation = (Math.random() - 0.5) * 2 * Math.PI; 
                 const randomScale = 1 + Math.random() * .2; 
 
                 const lensFlare = new Lensflare();
-                const lensElement = new LensflareElement(randomTexture, star.size * 100 * randomScale , 0, starLight.color);
-
+                const lensElement = new LensflareElement(randomTexture, star.size * 100 * randomScale, 0, starLight.color);
                 lensElement.size *= Math.random() > 0.5 ? 1 : -1; 
-
                 lensFlare.addElement(lensElement);
 
                 scene.add(starLight);
                 starLight.add(lensFlare);
                 
-                
-
-              
-
-                
-                
-
-                
-            })
+                // Create always-visible text 
+                const textMesh = new Text();
+                textMesh.material = new THREE.MeshStandardMaterial({
+                    color: star.color1,  
+                    roughness: 0.5,   
+                    emissive: new THREE.Color(star.color1),  
+                    emissiveIntensity: .5, 
+                    transparent: true,  
+                    depthWrite: false,  
+                });
+                textMesh.text = star.name; 
+                textMesh.font = '/fonts/AlbertusMTStd.otf'; 
+                textMesh.fontSize = 3; 
+                textMesh.position.set(star.xPosition + 3, star.yPosition + 5, star.zPosition + 3);
+                textMesh.material.opacity = 0.1; 
+                textMesh.userData.isHovered = false;
+                textMesh.userData.starID = star.starID;
+                textMesh.userData.defaultOpacity = 0.1;
+                textMesh.userData.hoveredOpacity = 1.0;
+                textMeshes.set(star.starID, textMesh);
+                scene.add(textMesh);    
+            });
         }
 
         //Setting up Raycasting 
         const pointer = new THREE.Vector2();
         const raycaster = new THREE.Raycaster();
         const scaleSpeed = 0.3;
-        
-     
-
-        const textMeshExisting = []
+        const fadeSpeedOpacity = 0.06;
 
         const onMouseMove = (event) => {
             pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -218,81 +194,64 @@ const HomeScene = ({stars}) => {
             raycaster.setFromCamera(pointer, camera);
             const intersects = raycaster.intersectObjects(allStarObjects);
         
+            // Reset all stars to their original size
             allStarObjects.forEach(star => {
                 const originalSize = star.userData.size;
                 star.scale.lerp(new THREE.Vector3(originalSize, originalSize, originalSize), scaleSpeed);
+                
+                // Reset text opacity to default if not hovered
+                const textMesh = textMeshes.get(star.userData.starID);
+                if (textMesh) {
+                    textMesh.userData.isHovered = false;
+                }
             });
         
-            if (intersects.length === 0) {
-                textMeshExisting.forEach(textMesh => {
-                    textMesh.userData.fadeOut = true;
-                });
-                return;
-            }
-        
-            if(intersects.length > 0) {
+            // If hovering over a star, increase its size and text opacity
+            if (intersects.length > 0) {
                 const intersectedStar = intersects[0].object;
-                const starId = intersectedStar.userData.starID; 
+                const starId = intersectedStar.userData.starID;
                 const starSize = intersectedStar.userData.size;
-                intersectedStar.userData.targetSize = starSize + 1; 
-        
-                intersectedStar.scale.lerp(new THREE.Vector3(intersectedStar.userData.targetSize, intersectedStar.userData.targetSize, intersectedStar.userData.targetSize), scaleSpeed);
-        
-                // Adding Text Above Star on Select (Using troika-three-text)
-                const starPostitionX = intersectedStar.userData.xPosition;
-                const starPostitionY = intersectedStar.userData.yPosition;
-                const starPostitionZ = intersectedStar.userData.zPosition;
-                const starName = intersectedStar.userData.name;
-        
-                // Create troika text
-                const textMesh = new Text();
-                textMesh.material = new THREE.MeshStandardMaterial({
-                    color: 0xffffff,  
-                    roughness: 0.5,   
-                    emissive: new THREE.Color(0xe1e3e1),  
-                    emissiveIntensity: .3, 
-                    transparent: true,  
-                    depthWrite: false,  
-                });
-                textMesh.text = starName; 
-                textMesh.font = '/fonts/AlbertusMTStd.otf'; 
-                textMesh.fontSize = 3; 
-                textMesh.position.set(starPostitionX + 3, starPostitionY + 5, starPostitionZ + 3);
-                textMesh.lookAt(camera.position);
-                scene.add(textMesh);
-                textMeshExisting.push(textMesh);
-        
+                intersectedStar.userData.targetSize = starSize + 1;
+                
+                intersectedStar.scale.lerp(
+                    new THREE.Vector3(
+                        intersectedStar.userData.targetSize, 
+                        intersectedStar.userData.targetSize, 
+                        intersectedStar.userData.targetSize
+                    ), 
+                    scaleSpeed
+                );
+                
+                // Set hovered state for text
+                const textMesh = textMeshes.get(starId);
+                if (textMesh) {
+                    textMesh.userData.isHovered = true;
+                }
+                
                 controls.unlock();
             }
-        
-          
         };
 
         window.addEventListener('mousemove', onMouseMove);
 
         //onMouseClick event 
-        const onMouseClick = (event)=> {
+        const onMouseClick = (event) => {
             pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
             pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
             raycaster.setFromCamera(pointer, camera);
             const intersects = raycaster.intersectObjects(allStarObjects);
 
-            if (intersects.length > 0){
+            if (intersects.length > 0) {
                 const intersectedStar = intersects[0].object;
-                const starId = intersectedStar.userData.starID; 
+                const starId = intersectedStar.userData.starID;
                 
-
-
-                if(starId){
+                if (starId) {
                     router.push(`/starPage/${starId}`);
                     window.location.href = `/starPage/${starId}`;
                 }
-
-
             }
-
-        }
+        };
 
         window.addEventListener("click", onMouseClick);
 
@@ -320,57 +279,56 @@ const HomeScene = ({stars}) => {
             twinkle(); 
         });
         
-        
         //Adding scene to renderPass 
-        const renderPass = new RenderPass(scene,camera);
+        const renderPass = new RenderPass(scene, camera);
         const composer = new EffectComposer(renderer);
-        composer.addPass(renderPass)
+        composer.addPass(renderPass);
 
         //Adding Bloom to renderPass
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(windowW,windowH), 1.6,0.1,0.1
+            new THREE.Vector2(windowW, windowH), 1.6, 0.1, 0.1
         );
         composer.addPass(bloomPass);
-
         bloomPass.strength = 1.5;
         bloomPass.resolution = true;
-     
-        
-
-        const targetOpacity = 1;
-        const fadeSpeedOpacity = .02;
 
         function animate() {
             renderer.render(scene, camera);
             controls.update();
             stats.update();
             composer.render();
-            renderer.setAnimationLoop(animate);
-
-            //Fadding text in and out
-            textMeshExisting.forEach((textMesh, index) => {
+            
+            // Update text meshes every frame to make them face camera and adjust opacity
+            textMeshes.forEach((textMesh) => {
+                // Make text always face camera
+                textMesh.lookAt(camera.position);
+                
+                // Smooth transition between opacity states
+                const targetOpacity = textMesh.userData.isHovered 
+                    ? textMesh.userData.hoveredOpacity 
+                    : textMesh.userData.defaultOpacity;
+                    
                 if (textMesh.material) {
-                    if (textMesh.userData.fadeOut) {
-                        textMesh.material.opacity += (0 - textMesh.material.opacity) * fadeSpeedOpacity;
-                        if (textMesh.material.opacity <= 0.01) {
-                            scene.remove(textMesh);
-                            textMeshExisting.splice(index, 1);
-                        }
-                    } else {
-                        textMesh.material.opacity += (targetOpacity - textMesh.material.opacity) * fadeSpeedOpacity;
-                    }
+                    textMesh.material.opacity += (targetOpacity - textMesh.material.opacity) * fadeSpeedOpacity;
                 }
             });
             
+            renderer.setAnimationLoop(animate);
         }
         
         animate();
-    });
+        
+        // Clean up event listeners when component unmounts
+        return () => {
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('click', onMouseClick);
+            renderer.dispose();
+        };
+    }, [router, stars]);
 
     return (
         <div style={{ width: "100%", height: "100%" }}></div>
-      );
+    );
 };
 
 export default HomeScene;
-
