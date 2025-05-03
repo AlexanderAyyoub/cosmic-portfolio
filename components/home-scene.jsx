@@ -80,15 +80,15 @@ const HomeScene = ({stars}) => {
         });
 
         // Trying hdri 
-        const hdriLoader = new EXRLoader()
-        hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        scene.background = texture;
-        scene.environment = texture;
-        });
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 2;
+        // const hdriLoader = new EXRLoader()
+        // hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
+        // texture.mapping = THREE.EquirectangularReflectionMapping;
+        // scene.background = texture;
+        // scene.environment = texture;
+        // });
+        // renderer.outputColorSpace = THREE.SRGBColorSpace;
+        // renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        // renderer.toneMappingExposure = 2;
 
         //Adding gltf File 
         const loader = new GLTFLoader();
@@ -109,17 +109,29 @@ const HomeScene = ({stars}) => {
             });
         });
 
+        //Funciton that lightent Hex color (for the stars and text)
+        function lightenHexColor(hex, percent) {
+            const color = new THREE.Color(hex);
+            const r = color.r + (1 - color.r) * percent;
+            const g = color.g + (1 - color.g) * percent;
+            const b = color.b + (1 - color.b) * percent;
+            return new THREE.Color(r, g, b);
+        }
+        
+
         //POPULATING SCENE WITH PROJECT STARS 
         const allStarObjects = [];
         const textMeshes = new Map(); // Map to store text meshes by star ID
 
         if (stars && stars.length > 0) {
             stars.forEach(star => {
+
                 const geometry = new THREE.SphereGeometry();
+                const lightenedColor = lightenHexColor(star.color2, 0.6);
                 
                 const material = new THREE.MeshStandardMaterial({
                     color: new THREE.Color(star.color2),
-                    emissive: new THREE.Color(star.color1),
+                    emissive: lightenedColor,
                     emissiveIntensity: 4,
                 });
                 
@@ -158,11 +170,12 @@ const HomeScene = ({stars}) => {
                 starLight.add(lensFlare);
                 
                 // Create always-visible text 
+                const textLighterColor = lightenHexColor(star.color1,.4)
                 const textMesh = new Text();
                 textMesh.material = new THREE.MeshStandardMaterial({
-                    color: star.color1,  
+                    color: textLighterColor,  
                     roughness: 0.5,   
-                    emissive: new THREE.Color(star.color1),  
+                    emissive: new THREE.Color(textLighterColor),  
                     emissiveIntensity: .5, 
                     transparent: true,  
                     depthWrite: false,  
