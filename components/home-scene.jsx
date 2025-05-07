@@ -52,8 +52,8 @@ const HomeScene = ({stars}) => {
         light.position.set(-3,3,-10);
         scene.add(light);
 
-        const lightHelper = new THREE.DirectionalLightHelper(light);
-        scene.add(lightHelper)
+        // const lightHelper = new THREE.DirectionalLightHelper(light);
+        // scene.add(lightHelper)
 
         //Fixing the line issue
         light.shadow.mapSize.width = 4096;
@@ -61,7 +61,7 @@ const HomeScene = ({stars}) => {
 
         //FPS counter
         const stats = Stats()
-        document.body.appendChild(stats.dom)
+        // document.body.appendChild(stats.dom)
 
         //Adding stars 
         const starArray = getStarfield({numStars: 500});
@@ -80,15 +80,15 @@ const HomeScene = ({stars}) => {
         });
 
         // Trying hdri 
-        // const hdriLoader = new EXRLoader()
-        // hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
-        // texture.mapping = THREE.EquirectangularReflectionMapping;
-        // scene.background = texture;
-        // scene.environment = texture;
-        // });
-        // renderer.outputColorSpace = THREE.SRGBColorSpace;
-        // renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        // renderer.toneMappingExposure = 2;
+        const hdriLoader = new EXRLoader()
+        hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.background = texture;
+        scene.environment = texture;
+        });
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 2;
 
         //Adding gltf File 
         const loader = new GLTFLoader();
@@ -304,6 +304,24 @@ const HomeScene = ({stars}) => {
         composer.addPass(bloomPass);
         bloomPass.strength = 1.5;
         bloomPass.resolution = true;
+
+        //Constaliation titles 
+        const codingMesh = new Text();
+        codingMesh.material = new THREE.MeshStandardMaterial({
+            color: "#FFFFFFF",  
+            roughness: 0.5,   
+            emissive: new THREE.Color("#FFFFFF"),  
+            emissiveIntensity: .5, 
+            depthWrite: false,  
+        });
+        codingMesh.text = "Coding Projects"; 
+        codingMesh.font = '/fonts/AlbertusMTStd.otf'; 
+        codingMesh.fontSize = 8; 
+        codingMesh.position.set(60,60,-80)
+        codingMesh.lookAt(camera.position)
+        scene.add(codingMesh)
+        
+
 
         function animate() {
             renderer.render(scene, camera);

@@ -511,7 +511,7 @@ const StarPageScene = ({star}) => {
 
         //FPS Counter 
         const stats = Stats()
-        document.body.appendChild(stats.dom)
+        // document.body.appendChild(stats.dom)
 
         //Mousemovent camera rotation 
         let mouseX = 0, mouseY = 0;
