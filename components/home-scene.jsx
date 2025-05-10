@@ -19,6 +19,7 @@ import { Text } from 'troika-three-text';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
 
+
 const HomeScene = ({stars}) => {
     const router = useRouter();
 
@@ -256,12 +257,10 @@ const HomeScene = ({stars}) => {
             const intersects = raycaster.intersectObjects(allStarObjects);
 
             if (intersects.length > 0) {
-                const intersectedStar = intersects[0].object;
-                const starId = intersectedStar.userData.starID;
-                
-                if (starId) {
-                    router.push(`/starPage/${starId}`);
-                    window.location.href = `/starPage/${starId}`;
+                const { starID } = intersects[0].object.userData;
+            if (starID) {
+                router.push(`/starPage/${starID}`);
+                window.location.href = `/starPage/${starID}`;
                 }
             }
         };
@@ -357,9 +356,7 @@ const HomeScene = ({stars}) => {
         };
     }, [router, stars]);
 
-    return (
-        <div style={{ width: "100%", height: "100%" }}></div>
-    );
+     return <div style={{ width: "100%", height: "100%" }}></div>;
 };
 
 export default HomeScene;
