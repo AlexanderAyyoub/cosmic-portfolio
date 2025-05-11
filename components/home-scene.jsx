@@ -81,8 +81,8 @@ const HomeScene = ({stars}) => {
         });
 
         // Trying hdri 
-        const hdriLoader = new EXRLoader()
-        hdriLoader.load('/textures/homeSceneEXR.exr', function (texture) {
+        const hdriLoader = new RGBELoader()
+        hdriLoader.load('/textures/homeScene.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
         scene.environment = texture;
