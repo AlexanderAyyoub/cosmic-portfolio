@@ -4,8 +4,6 @@ import { useEffect } from 'react';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { RenderPass } from 'three/examples/jsm/Addons.js';
-import { EffectComposer } from 'three/examples/jsm/Addons.js';
 import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
 import { TTFLoader } from 'three/examples/jsm/Addons.js';
 import { FontLoader } from 'three/examples/jsm/Addons.js';
@@ -15,6 +13,7 @@ import { EXRLoader } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
 import { Lensflare, LensflareElement } from 'three/addons/objects/Lensflare.js';
 import { Text } from 'troika-three-text'; 
+import { EffectComposer, EffectPass, RenderPass, ShockWaveEffect, BloomEffect } from 'postprocessing';
 
 import Stats from 'three/examples/jsm/libs/stats.module';
 import getStarfield from './getStarfield.js';
@@ -256,7 +255,14 @@ const HomeScene = ({stars}) => {
             raycaster.setFromCamera(pointer, camera);
             const intersects = raycaster.intersectObjects(allStarObjects);
 
+            //Shock-Wave transition 
+            
+
             if (intersects.length > 0) {
+                //Setting possition then activating shock wave
+                shockWaveEffect.position.copy(intersects[0].point); 
+                shockWaveEffect.explode();
+
                 const { starID } = intersects[0].object.userData;
             if (starID) {
                 router.push(`/starPage/${starID}`);
@@ -292,17 +298,30 @@ const HomeScene = ({stars}) => {
         });
         
         //Adding scene to renderPass 
+        const composer = new EffectComposer(renderer, {frameBufferType: THREE.HalfFloatType});
         const renderPass = new RenderPass(scene, camera);
-        const composer = new EffectComposer(renderer);
         composer.addPass(renderPass);
 
-        //Adding Bloom to renderPass
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(windowW, windowH), 1.6, 0.1, 0.1
-        );
+        //Addign shock wave 
+        const shockWaveEffect = new ShockWaveEffect(camera, new THREE.Vector3(1, 1, 1),{
+                speed: 12,
+                maxRadius: 100,
+                extend: 30,
+                waveSize: 50,
+                amplitude: 1
+            });
+
+        //Adding Bloom 
+        const bloomEffect = new BloomEffect({
+        intensity: 1.5,
+        luminanceThreshold: 0.1,
+        luminanceSmoothing: 0.1,
+        });
+
+        //effect pass 
+        const bloomPass = new EffectPass(camera, bloomEffect, shockWaveEffect);
+        bloomPass.renderToScreen = true;
         composer.addPass(bloomPass);
-        bloomPass.strength = 1.5;
-        bloomPass.resolution = true;
 
         //Constaliation titles 
         const codingMesh = new Text();
@@ -310,14 +329,14 @@ const HomeScene = ({stars}) => {
             color: "#FFFFFFF",  
             roughness: 0.5,   
             emissive: new THREE.Color("#FFFFFF"),  
-            emissiveIntensity: .5, 
+            emissiveIntensity: .2, 
             depthWrite: false,  
         });
         codingMesh.text = "Coding Projects"; 
         codingMesh.font = '/fonts/AlbertusMTStd.otf'; 
-        codingMesh.fontSize = 8; 
-        codingMesh.position.set(60,60,-80)
-        codingMesh.lookAt(camera.position)
+        codingMesh.fontSize = 5; 
+        codingMesh.position.set(30,30,-40)
+        codingMesh.rotation.set(10, 10, 20);
         scene.add(codingMesh)
         
 
@@ -328,6 +347,10 @@ const HomeScene = ({stars}) => {
             stats.update();
             composer.render();
             
+            // codingMesh.quaternion.copy(camera.quaternion);
+
+
+
             // Update text meshes every frame to make them face camera and adjust opacity
             textMeshes.forEach((textMesh) => {
                 // Make text always face camera
