@@ -23,12 +23,30 @@ const HomeScene = ({stars}) => {
     const router = useRouter();
 
     useEffect(() => {
+
+        //Loading Manger
+        const loadingManager = new THREE.LoadingManager()
+
+        loadingManager.onStart = () => {
+            console.log('Loading started');
+        };
+
+        loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+            const progress = (itemsLoaded / itemsTotal) * 100;
+            window.dispatchEvent(new CustomEvent('loadingProgress', { detail: progress }));
+        };
+
+        loadingManager.onLoad = () => {
+            console.log('Loading complete');
+            window.dispatchEvent(new Event('loadingComplete'));
+        };
+        
         const windowW = window.innerWidth
         const windowH = window.innerHeight
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, windowW / windowH, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer();
-        const textureLoader = new THREE.TextureLoader();
+        const textureLoader = new THREE.TextureLoader(loadingManager);
 
         renderer.setSize(windowW, windowH);
         renderer.shadowMap.enabled = true;
@@ -45,6 +63,7 @@ const HomeScene = ({stars}) => {
         renderer.domElement.style.width = '100%';
         renderer.domElement.style.height = '100%';
         camera.position.set(0, 0, 0);
+
         
         //Light
         const light = new THREE.DirectionalLight(0x404040,5);
@@ -80,7 +99,7 @@ const HomeScene = ({stars}) => {
         });
 
         // Trying hdri 
-        const hdriLoader = new RGBELoader()
+        const hdriLoader = new RGBELoader(loadingManager)
         hdriLoader.load('/textures/homeScene.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
@@ -91,8 +110,8 @@ const HomeScene = ({stars}) => {
         renderer.toneMappingExposure = 2;
 
         //Adding gltf File 
-        const loader = new GLTFLoader();
-        const dracoLoader = new DRACOLoader();
+        const loader = new GLTFLoader(loadingManager);
+        const dracoLoader = new DRACOLoader(loadingManager);
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         loader.setDRACOLoader(dracoLoader);
 
@@ -326,7 +345,7 @@ const HomeScene = ({stars}) => {
         //Constaliation titles 
         const codingMesh = new Text();
         codingMesh.material = new THREE.MeshStandardMaterial({
-            color: "#FFFFFFF",  
+            color: "#FFFFFF",  
             roughness: 0.5,   
             emissive: new THREE.Color("#FFFFFF"),  
             emissiveIntensity: .2, 

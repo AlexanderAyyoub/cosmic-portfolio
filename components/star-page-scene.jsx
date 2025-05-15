@@ -4,7 +4,7 @@ import { EXRLoader } from 'three/examples/jsm/Addons.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
-import { EffectComposer, EffectPass, RenderPass, DepthOfFieldEffect } from 'postprocessing';
+import { EffectComposer, EffectPass, RenderPass, DepthOfFieldEffect,ShockWaveEffect } from 'postprocessing';
 import * as THREE from 'three';
 
 
@@ -18,6 +18,24 @@ const StarPageScene = ({star}) => {
     const router = useRouter();
     
     useEffect(() => {
+        
+        //Loading Manger
+        const loadingManager = new THREE.LoadingManager()
+
+        loadingManager.onStart = () => {
+            console.log('Loading started');
+        };
+
+        loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+            const progress = (itemsLoaded / itemsTotal) * 100;
+            window.dispatchEvent(new CustomEvent('loadingProgress', { detail: progress }));
+        };
+
+        loadingManager.onLoad = () => {
+            console.log('Loading complete');
+            window.dispatchEvent(new Event('loadingComplete'));
+            shockWaveEffect.explode();
+        };
 
         // Setting up scene 
         const windowW = window.innerWidth
@@ -43,6 +61,7 @@ const StarPageScene = ({star}) => {
 
         scene.fog = new THREE.FogExp2( star.color1, 0.008 );
 
+
         //Adding Depth of Field post proccesing 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
@@ -51,13 +70,22 @@ const StarPageScene = ({star}) => {
             focalLength: .4,      
             bokehScale: 4,         
         });
+        //shockwave
+        const shockWaveEffect = new ShockWaveEffect(camera, new THREE.Vector3(.5,-.2,1.2),{
+            speed: .3,
+            maxRadius: .5,
+            extend: .5,
+            waveSize: .2,
+            amplitude: .4
+        });
 
-        const effectPass = new EffectPass(camera, dofEffect);
+        const effectPass = new EffectPass(camera, dofEffect,shockWaveEffect);
         effectPass.renderToScreen = true;
         composer.addPass(effectPass);
 
+
         //Text holder object 
-        const loader = new GLTFLoader();
+        const loader = new GLTFLoader(loadingManager);
         const dracoLoader = new DRACOLoader();
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         loader.setDRACOLoader(dracoLoader);
@@ -409,7 +437,7 @@ const StarPageScene = ({star}) => {
         const pmremGenerator = new THREE.PMREMGenerator(renderer);
         pmremGenerator.compileEquirectangularShader();
         
-        new EXRLoader().load(randomNebulaePath, function (texture) {
+        new EXRLoader(loadingManager).load(randomNebulaePath, function (texture) {
             texture.mapping = THREE.EquirectangularReflectionMapping;
             texture.colorSpace = THREE.LinearSRGBColorSpace;
         
@@ -493,7 +521,7 @@ const StarPageScene = ({star}) => {
             const URL = `/images/${url}`; 
          
             const geometry = new THREE.PlaneGeometry(16, 9);
-            const texture = new THREE.TextureLoader().load(URL);
+            const texture = new THREE.TextureLoader(loadingManager).load(URL);
             const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
         
             const plane = new THREE.Mesh(geometry, material);
