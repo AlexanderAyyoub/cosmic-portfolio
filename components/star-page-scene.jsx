@@ -75,7 +75,7 @@ const StarPageScene = ({star}) => {
 
         camera.position.set(0, 0, 0);
 
-        scene.fog = new THREE.FogExp2( star.color1, 0.008 );
+        scene.fog = new THREE.FogExp2( star.color1, 0.01 );
 
 
         //Adding Depth of Field post proccesing 
@@ -95,7 +95,7 @@ const StarPageScene = ({star}) => {
             amplitude: .4
         });
 
-        const effectPass = new EffectPass(camera, dofEffect,shockWaveEffect);
+        const effectPass = new EffectPass(camera,shockWaveEffect);
         effectPass.renderToScreen = true;
         composer.addPass(effectPass);
 
@@ -719,7 +719,7 @@ const StarPageScene = ({star}) => {
 
             <div style={{ width: '100%', height: '100%' }} />
             </>
-      );
+    );
 };
 
 export default StarPageScene;
