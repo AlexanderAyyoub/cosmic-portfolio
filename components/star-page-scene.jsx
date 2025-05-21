@@ -348,7 +348,7 @@ const StarPageScene = ({star}) => {
                 "blueColorRange": { value: 1 },      // Tolerance for blue colors
                 "greenHueRange": { value: .5 },      // Hue range for detecting greens
                 "blueHueRange": { value: .5 },        // Hue range for detecting blues
-                "exposure": { value: .5 }             // Exposure 
+                "exposure": { value: .3 }             // Exposure 
             },
             vertexShader: `
                 varying vec2 vUv;

@@ -186,8 +186,8 @@ const HomeScene = ({stars}) => {
                 const randomScale = 1 + Math.random() * .2; 
 
                 const lensFlare = new Lensflare();
-                const lensElement = new LensflareElement(randomTexture, star.size * 100 * randomScale, 0, starLight.color);
-                lensElement.size *= Math.random() > 0.5 ? 1 : -1; 
+                const lensElement = new LensflareElement(randomTexture, star.size * 125 * randomScale, 0, starLight.color);
+                lensElement.size *= Math.random() > 1 ? 1 : -1; 
                 lensFlare.addElement(lensElement);
 
                 scene.add(starLight);
@@ -200,7 +200,7 @@ const HomeScene = ({stars}) => {
                     color: textLighterColor,  
                     roughness: 0.5,   
                     emissive: new THREE.Color(textLighterColor),  
-                    emissiveIntensity: .5, 
+                    emissiveIntensity: 1, 
                     transparent: true,  
                     depthWrite: false,  
                 });
@@ -300,17 +300,17 @@ const HomeScene = ({stars}) => {
         //Making the stars twinkle 
         allStarObjects.forEach(star => {
             let increasing = Math.random() > 0.5; 
-            let intensity = THREE.MathUtils.randFloat(3, 5); // Lower intensity range
+            let intensity = THREE.MathUtils.randFloat(2, 7); // Lower intensity range
         
             const twinkle = () => {
                 if (!star.material) return; 
         
                 if (increasing) {
                     intensity += 0.2; // Faster increase
-                    if (intensity >= 5) increasing = false; // Lower max intensity
+                    if (intensity >= 7) increasing = false; // Lower max intensity
                 } else {
                     intensity -= 0.2; // Faster decrease
-                    if (intensity <= 3) increasing = true; // Lower min intensity
+                    if (intensity <= 2) increasing = true; // Lower min intensity
                 }
         
                 star.material.emissiveIntensity = intensity;
@@ -337,9 +337,9 @@ const HomeScene = ({stars}) => {
 
         //Adding Bloom 
         const bloomEffect = new BloomEffect({
-        intensity: 1.5,
-        luminanceThreshold: 0.1,
-        luminanceSmoothing: 0.1,
+        intensity: .5,
+        luminanceThreshold: 1,
+        
         });
 
         //effect pass 
@@ -353,14 +353,14 @@ const HomeScene = ({stars}) => {
             color: "#FFFFFF",  
             roughness: 0.5,   
             emissive: new THREE.Color("#FFFFFF"),  
-            emissiveIntensity: .2, 
+            emissiveIntensity: 1, 
             depthWrite: false,  
         });
         codingMesh.text = "Coding Projects"; 
         codingMesh.font = '/fonts/AlbertusMTStd.otf'; 
         codingMesh.fontSize = 5; 
         codingMesh.position.set(30,30,-40)
-        codingMesh.rotation.set(10, 10, 20);
+        codingMesh.rotation.set(9.7, 10.5, 9.7);
         scene.add(codingMesh)
         
 
