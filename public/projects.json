@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Portfolio Website",
+    "description": "A personal portfolio built with Next.js and Tailwind CSS.",
+    "link": "https://github.com/yourusername/portfolio",
+    "image": "/images/example1.webp"
+  },
+  {
+    "title": "Weather App",
+    "description": "A weather forecast application using OpenWeatherMap API.",
+    "link": "https://github.com/yourusername/weather-app",
+    "image": "/images/example2.webp"
+  },
+
+  {
+    "title": "My Project",
+    "description": "An example project with multiple images.",
+    "link": "https://github.com/myproject",
+    "image": "/images/example2.webp, /images/example1.webp, /images/example2.webp"
+  }
+
+]
