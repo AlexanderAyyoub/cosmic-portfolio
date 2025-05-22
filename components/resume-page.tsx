@@ -1,32 +1,24 @@
 'use client'
 
-// app/page.tsx (or pages/index.tsx depending on setup)
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaGithub } from "react-icons/fa";
 import { useTheme } from "next-themes";
+import ResumePageBackground from "@/components/background-resume-page";
 import projectsData from "@/public/projects.json";
 
 export default function ResumePage() {
   const { theme, setTheme } = useTheme();
+
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   return (
     <div className="relative min-h-screen overflow-x-hidden">
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover z-[-1]"
-      >
-        <source src="/background-video.webp" type="video/webp" />
-        <div className="bg-black w-full h-full absolute inset-0"></div>
-      </video>
+      <ResumePageBackground />
 
-      <div className="px-8 md:px-24 lg:px-32 py-12 space-y-16 text-black dark:text-white bg-white/70 dark:bg-black/70 backdrop-blur-sm">
+      <div className="px-8 md:px-24 lg:px-32 py-12 space-y-16 text-black dark:text-white bg-transparent">
         <div className="max-w-6xl mx-auto">
           <header className="text-center space-y-2">
             <div className="text-4xl font-bold tracking-tight">Ratatouille the Developer</div>
@@ -81,23 +73,21 @@ export default function ResumePage() {
                 const [isTransitioning, setIsTransitioning] = useState(false);
                 const [displayedImage, setDisplayedImage] = useState(0);
 
-                // Handle image transition with fade effect
+                //Fading image transition logic 
                 const changeImage = (newIndex: number): void => {
                   if (isTransitioning) return;
                   
                   setIsTransitioning(true);
-                  // After starting transition, update the actual index
+
                   setTimeout(() => {
                     setDisplayedImage(newIndex);
-                    // Short delay before ending transition
                     setTimeout(() => {
                       setIsTransitioning(false);
                       setCurrentImage(newIndex);
                     }, 50);
-                  }, 300); // Fade out time
+                  }, 300); 
                 };
 
-                // Initialize displayedImage when component mounts
                 useEffect(() => {
                   setDisplayedImage(currentImage);
                 }, []);
