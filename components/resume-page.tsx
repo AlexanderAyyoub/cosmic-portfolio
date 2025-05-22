@@ -14,15 +14,41 @@ export default function ResumePage() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
+  // Load the fonts
+  useEffect(() => {
+    const titleFont = new FontFace(
+      'AlbertusMTStd',
+      'url(/fonts/AlbertusMTStd.otf)'
+    );
+    
+    const bodyFont = new FontFace(
+      'ABCArizonaFlare',
+      'url(/fonts/ABCArizonaFlare-Regular-Trial.otf)'
+    );
+    
+    Promise.all([titleFont.load(), bodyFont.load()])
+      .then(([loadedTitleFont, loadedBodyFont]) => {
+        document.fonts.add(loadedTitleFont);
+        document.fonts.add(loadedBodyFont);
+      })
+      .catch((error) => {
+        console.error('Font failed to load:', error);
+      });
+  }, []);
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen overflow-x-hidden" style={{ fontFamily: 'ABCArizonaFlare, Arial, sans-serif', color: '#EEE8DC' }}>
       <ResumePageBackground />
 
-      <div className="px-8 md:px-24 lg:px-32 py-12 space-y-16 text-black dark:text-white bg-transparent">
+      <div className="px-8 md:px-24 lg:px-32 py-12 space-y-16 bg-transparent">
         <div className="max-w-6xl mx-auto">
           <header className="text-center space-y-2">
-            <div className="text-4xl font-bold tracking-tight">Ratatouille the Developer</div>
-            <p className="text-sm text-gray-700 dark:text-gray-300">Full Stack Developer | Creative Technologist</p>
+            <div className="text-6xl font-bold tracking-tight" style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC' }}>
+              Ratatouille the Developer
+            </div>
+            <p className="text-lg" style={{ color: '#C2C8B8' }}>
+              Full Stack Developer | Creative Technologist
+            </p>
             <button
               onClick={toggleTheme}
               className="mt-4 h-10 w-10 flex items-center justify-center rounded-sm border border-gray-300 dark:border-gray-700 bg-transparent hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
@@ -41,31 +67,41 @@ export default function ResumePage() {
           </header>
 
           <section className="space-y-6 mt-16">
-            <div className="text-xl font-semibold border-b border-gray-300 dark:border-gray-700 pb-2">Education</div>
-            <Card className="rounded-sm bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 shadow-none">
+            <div className="text-3xl font-semibold border-b pb-2" style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC', borderColor: '#2B3F2F' }}>
+              Education
+            </div>
+            <Card className="rounded-sm border shadow-none" style={{ backgroundColor: '#000E14', borderColor: '#2B3F2F' }}>
               <CardHeader>
-                <CardTitle className="text-lg">B.S. in Computer Science</CardTitle>
+                <CardTitle className="text-2xl" style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC' }}>
+                  B.S. in Computer Science
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Example University, 2022</p>
+                <p className="text-lg" style={{ color: '#C2C8B8' }}>Example University, 2022</p>
               </CardContent>
             </Card>
           </section>
 
           <section className="space-y-6 mt-12">
-            <div className="text-xl font-semibold border-b border-gray-300 dark:border-gray-700 pb-2">Experience</div>
-            <Card className="rounded-sm bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 shadow-none">
+            <div className="text-3xl font-semibold border-b pb-2" style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC', borderColor: '#2B3F2F' }}>
+              Experience
+            </div>
+            <Card className="rounded-sm border shadow-none" style={{ backgroundColor: '#000E14', borderColor: '#2B3F2F' }}>
               <CardHeader>
-                <CardTitle className="text-lg">Frontend Developer Intern</CardTitle>
+                <CardTitle className="text-2xl" style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC' }}>
+                  Frontend Developer Intern
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p>Tech Corp (2023 - Present)</p>
+                <p className="text-lg" style={{ color: '#C2C8B8' }}>Tech Corp (2023 - Present)</p>
               </CardContent>
             </Card>
           </section>
 
           <section className="space-y-6 mt-16">
-            <div className="text-xl font-semibold border-b border-gray-300 dark:border-gray-700 pb-2">Projects</div>
+            <div className="text-3xl font-semibold border-b border-gray-300 dark:border-gray-700 pb-2" style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC' }}>
+              Projects
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {projectsData.map((project, index) => {
                 const images = project.image?.split(',').slice(0, 4) || [];
@@ -93,9 +129,11 @@ export default function ResumePage() {
                 }, []);
 
                 return (
-                  <Card key={index} className="rounded-sm bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 shadow-none overflow-hidden">
+                  <Card key={index} className="rounded-sm border shadow-none overflow-hidden" style={{ backgroundColor: '#000E14', borderColor: '#2B3F2F' }}>
                     <CardHeader>
-                      <CardTitle className="text-lg">{project.title}</CardTitle>
+                      <CardTitle className="text-lg" style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC' }}>
+                        {project.title}
+                      </CardTitle>
                     </CardHeader>
 
                     {images.length > 0 && (
@@ -142,14 +180,15 @@ export default function ResumePage() {
                     )}
 
                     <CardContent className="flex flex-col gap-2">
-                      <p>{project.description}</p>
+                      <p style={{ color: '#C2C8B8' }}>{project.description}</p>
                       <a
                         href={project.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-500 hover:text-black dark:hover:text-white focus:outline-none inline-flex items-center gap-2"
+                        className="focus:outline-none inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
+                        style={{ color: '#C2C8B8' }}
                       >
-                        <FaGithub size={20} className="text-gray-500 group-hover:text-black dark:group-hover:text-white transition-colors" />
+                        <FaGithub size={20} />
                         <span className="sr-only">View on GitHub</span>
                       </a>
                     </CardContent>
