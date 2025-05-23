@@ -1,6 +1,8 @@
-'use client'
-
+'use client';
 import { useEffect } from 'react';
+import { GLTFLoader } from 'three/examples/jsm/Addons.js';
+import { DRACOLoader } from 'three/examples/jsm/Addons.js';
+
 import * as THREE from 'three';
 import getStarfield from './getStarfield.js';
 
@@ -24,15 +26,36 @@ const ResumePageBackground = () => {
       container.appendChild(renderer.domElement);
     }
 
-    //test sphere
+    // test sphere
     const sphereGeometry = new THREE.SphereGeometry(15, 64, 64);
     const sphereMaterial = new THREE.MeshBasicMaterial({
       color: 0x4f46e5,
     });
     
     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    sphere.position.set(0, 0, -50);
-    scene.add(sphere);
+    sphere.position.set(-15, -5, -15);
+    // scene.add(sphere);
+    //test lights 
+    const light = new THREE.AmbientLight(0x404040,5);
+    light.position.set(-3,3,-10);
+    scene.add(light);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    directionalLight.position.set(10, 10, 10);
+    scene.add(directionalLight);
+    //loading satern 
+    const loader = new GLTFLoader();
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    loader.setDRACOLoader(dracoLoader);
+    
+    loader.load('/models/star_models/BlueWhiteTestStar.glb', (gltf) => {
+        const saternMesh = gltf.scene;
+        saternMesh.position.set(0, 0, 0);
+        saternMesh.scale.set(10, 10, 10); 
+        scene.add(saternMesh);
+    });
+   
 
     //Starfield
     const starfield = getStarfield({ numStars: 500 });
@@ -42,7 +65,8 @@ const ResumePageBackground = () => {
 
     let mouseX = 0;
     let mouseY = 0;
-    const sensitivity = 0.01;
+    const sensitivity = 0.05;
+
     // Handling camera move for mouse
     const handleMouseMove = (event) => {
       mouseX = (event.clientX / window.innerWidth) * 2 - 1;
