@@ -295,7 +295,7 @@ const StarPageScene = ({star}) => {
             const intersects = raycaster.intersectObjects([goBack]);
 
             if(intersects.length > 0){
-                router.push(`/`);
+                router.push(`/homePage`);
                 console.log("clicked")
             }
         }
