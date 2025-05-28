@@ -5,8 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ResumePageBackground from "@/components/background-resume-page";
 import ProjectCard from "@/components/project-cards";
 import projectsData from "@/public/projects.json";
+import { useRouter } from 'next/navigation';
 
 export default function ResumePage() {
+  const router = useRouter();
+
   // Load the fonts
   useEffect(() => {
     const titleFont = new FontFace(
@@ -28,6 +31,10 @@ export default function ResumePage() {
         console.error('Font failed to load:', error);
       });
   }, []);
+
+  const handleStarGazingClick = () => {
+    router.push('/homePage');
+  };
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ fontFamily: 'ABCArizonaFlare, Arial, sans-serif', color: '#EEE8DC' }}>
@@ -88,6 +95,32 @@ export default function ResumePage() {
           </section>
         </div>
       </div>
+
+      {/*Must click button*/}
+      <button
+        onClick={handleStarGazingClick}
+        className="fixed bottom-8 right-8 z-50 px-6 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+        style={{ 
+          backgroundColor: '#000E14', 
+          border: '2px solid #EEE8DC',
+          fontFamily: 'AlbertusMTStd, serif'
+        }}
+      >
+        <div className="text-center">
+          <div 
+            className="text-lg font-semibold mb-1" 
+            style={{ color: '#EEE8DC' }}
+          >
+            Let's go star gazing
+          </div>
+          <div 
+            className="text-xs" 
+            style={{ color: '#6E00F5' }}
+          >
+            *Highly recommended*
+          </div>
+        </div>
+      </button>
     </div>
   );
 }

@@ -278,8 +278,6 @@ const HomeScene = ({stars}) => {
 
             raycaster.setFromCamera(pointer, camera);
             const intersects = raycaster.intersectObjects(allStarObjects);
-
-            //Shock-Wave transition 
             
 
             if (intersects.length > 0) {
