@@ -19,7 +19,8 @@ const ResumePageBackground = () => {
     renderer.setSize(windowW, windowH);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setClearColor(0x000000, 0);
-    
+    scene.fog = new THREE.FogExp2( 0x0e402a, .025 );
+
     // Create container and append renderer
     const container = document.getElementById('threejs-background');
     if (container) {
@@ -49,10 +50,10 @@ const ResumePageBackground = () => {
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
     loader.setDRACOLoader(dracoLoader);
     
-    loader.load('/models/star_models/BlueWhiteTestStar.glb', (gltf) => {
+    loader.load('/models/star_models/sun.glb', (gltf) => {
         const saternMesh = gltf.scene;
-        saternMesh.position.set(0, 0, 0);
-        saternMesh.scale.set(10, 10, 10); 
+        saternMesh.position.set(-35, -15, -50);
+        saternMesh.scale.set(50, 50, 50); 
         scene.add(saternMesh);
     });
    
@@ -65,7 +66,7 @@ const ResumePageBackground = () => {
 
     let mouseX = 0;
     let mouseY = 0;
-    const sensitivity = 0.05;
+    const sensitivity = 0.01;
 
     // Handling camera move for mouse
     const handleMouseMove = (event) => {
@@ -84,6 +85,75 @@ const ResumePageBackground = () => {
     };
 
     window.addEventListener('resize', handleResize);
+
+
+    //Adding video plane
+    const video = document.createElement('video');
+    video.src = '/textures/sun_flare/outputv2.webm';
+    video.crossOrigin = 'anonymous';
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.autoplay = true;
+
+    video.addEventListener('loadeddata', () => {
+    video.play();
+    });
+
+    const videoTexture = new THREE.VideoTexture(video);
+    videoTexture.minFilter = THREE.LinearFilter;
+    videoTexture.magFilter = THREE.LinearFilter;
+    videoTexture.format = THREE.RGBFormat;
+    videoTexture.generateMipmaps = false;
+
+    const material = new THREE.ShaderMaterial({
+    uniforms: {
+        map: { value: videoTexture },
+        threshold: { value: 0.1 }, // more or less black area
+        darkColor: { value: new THREE.Color(0x000000) },  // Default black
+        lightColor: { value: new THREE.Color(0xffffff) }  // Default white
+    },
+    vertexShader: `
+        varying vec2 vUv;
+        void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform sampler2D map;
+        uniform float threshold;
+        uniform vec3 darkColor;
+        uniform vec3 lightColor;
+        varying vec2 vUv;
+
+        void main() {
+        vec4 texColor = texture2D(map, vUv);
+        float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+        float mixFactor = smoothstep(threshold, 1.0, brightness);
+        vec3 resultColor = mix(darkColor, lightColor, mixFactor);
+
+        // Make alpha depend on brightness
+        float alpha = smoothstep(threshold, 1.0, brightness); // fade in based on threshold
+        gl_FragColor = vec4(resultColor, alpha);
+        }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide
+    });
+
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const plane = new THREE.Mesh(geometry, material);
+    plane.position.set(-7.1, -3.3, -8);
+    plane.scale.set(31, 25, 6);
+    plane.lookAt(camera.position);
+
+    material.uniforms.darkColor.value.set(0x218057);
+    material.uniforms.lightColor.value.set(0xd5f2e6); 
+    material.uniforms.threshold.value = .000001; // show more dark areas
+
+
+    scene.add(plane);
 
     function animate() {
       // Camera movement
