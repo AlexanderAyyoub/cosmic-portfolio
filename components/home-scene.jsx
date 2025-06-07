@@ -76,8 +76,15 @@ const HomeScene = ({stars}) => {
         light.position.set(-3,3,-10);
         scene.add(light);
 
-        // const lightHelper = new THREE.DirectionalLightHelper(light);
-        // scene.add(lightHelper)
+        const alight = new THREE.PointLight(0x404040,100000);
+        alight.position.set(-30, 30, -210);
+        scene.add(alight);
+
+        const lightHelper = new THREE.PointLightHelper(alight);
+        scene.add(lightHelper)
+        const dlightHelper = new THREE.DirectionalLightHelper(light);
+        scene.add(dlightHelper)
+
 
         //Fixing the line issue
         light.shadow.mapSize.width = 4096;
@@ -131,6 +138,17 @@ const HomeScene = ({stars}) => {
                     node.receiveShadow = true; 
                 }
             });
+        });
+
+        //Adding moon 
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        loader.setDRACOLoader(dracoLoader);
+        
+        loader.load('/models/Moon.glb', (gltf) => {
+            const saternMesh = gltf.scene;
+            saternMesh.position.set(-50, 70, -220);
+            saternMesh.scale.set(10, 10, 10); 
+            scene.add(saternMesh);
         });
 
         //Funciton that lightent Hex color (for the stars and text)

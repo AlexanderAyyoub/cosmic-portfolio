@@ -13,7 +13,7 @@ const ResumePageBackground = () => {
     const windowW = window.innerWidth;
     const windowH = window.innerHeight;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, windowW / windowH, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(95, windowW / windowH, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     
     renderer.setSize(windowW, windowH);
@@ -52,8 +52,8 @@ const ResumePageBackground = () => {
     
     loader.load('/models/star_models/sun.glb', (gltf) => {
         const saternMesh = gltf.scene;
-        saternMesh.position.set(-35, -15, -50);
-        saternMesh.scale.set(50, 50, 50); 
+        saternMesh.position.set(-30, -20, -48);
+        saternMesh.scale.set(50+13, 50+13, 50+13); 
         scene.add(saternMesh);
     });
    
@@ -109,8 +109,8 @@ const ResumePageBackground = () => {
     const material = new THREE.ShaderMaterial({
     uniforms: {
         map: { value: videoTexture },
-        threshold: { value: 0.1 }, // more or less black area
-        darkColor: { value: new THREE.Color(0x000000) },  // Default black
+        threshold: { value: 0.000000000001 }, // more or less black area
+        darkColor: { value: new THREE.Color(0xffffff) },  // Default black
         lightColor: { value: new THREE.Color(0xffffff) }  // Default white
     },
     vertexShader: `
@@ -144,13 +144,13 @@ const ResumePageBackground = () => {
 
     const geometry = new THREE.PlaneGeometry(2, 2);
     const plane = new THREE.Mesh(geometry, material);
-    plane.position.set(-7.1, -3.3, -8);
-    plane.scale.set(31, 25, 6);
+    plane.position.set(-2.8, -2.1, -4);
+    plane.scale.set(36, 31, 10);  
+
     plane.lookAt(camera.position);
 
-    material.uniforms.darkColor.value.set(0x218057);
+    material.uniforms.darkColor.value.set(0x1fad70);
     material.uniforms.lightColor.value.set(0xd5f2e6); 
-    material.uniforms.threshold.value = .000001; // show more dark areas
 
 
     scene.add(plane);
@@ -183,19 +183,7 @@ const ResumePageBackground = () => {
       if (container && renderer.domElement) {
         container.removeChild(renderer.domElement);
       }
-      // Clean up for three.js assets 
-      scene.traverse((object) => {
-        if (object.isMesh) {
-          scene.remove(object);
-          object.geometry.dispose();
-          if (Array.isArray(object.material)) {
-            object.material.forEach(material => material.dispose());
-          } else {
-            object.material.dispose();
-          }
-        }
-      });
-      
+
       renderer.dispose();
     };
   }, []);
