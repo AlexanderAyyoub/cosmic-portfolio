@@ -76,14 +76,14 @@ const HomeScene = ({stars}) => {
         light.position.set(-3,3,-10);
         scene.add(light);
 
-        const alight = new THREE.PointLight(0x404040,100000);
-        alight.position.set(-30, 30, -210);
+        const alight = new THREE.PointLight(0x404040,8000);
+        alight.position.set(-40, 50, -200);
         scene.add(alight);
 
-        const lightHelper = new THREE.PointLightHelper(alight);
-        scene.add(lightHelper)
-        const dlightHelper = new THREE.DirectionalLightHelper(light);
-        scene.add(dlightHelper)
+        // const lightHelper = new THREE.PointLightHelper(alight);
+        // scene.add(lightHelper)
+        // const dlightHelper = new THREE.DirectionalLightHelper(light);
+        // scene.add(dlightHelper)
 
 
         //Fixing the line issue
@@ -146,7 +146,7 @@ const HomeScene = ({stars}) => {
         
         loader.load('/models/Moon.glb', (gltf) => {
             const saternMesh = gltf.scene;
-            saternMesh.position.set(-50, 70, -220);
+            saternMesh.position.set(-60, 70, -220);
             saternMesh.scale.set(10, 10, 10); 
             scene.add(saternMesh);
         });
@@ -449,8 +449,8 @@ const HomeScene = ({stars}) => {
                     zIndex: -1,
                 }}
                 >
-                <source src="/videos/loading-bg.mp4" type="video/mp4" />
-                Your browser does not support this file format
+                <source src="/textures/lightSpeed.webm" type="video/webm" />
+                Your browser does not support the WebM format.
                 </video>
                 <div
                 style={{

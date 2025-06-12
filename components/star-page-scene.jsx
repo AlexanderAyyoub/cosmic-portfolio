@@ -678,8 +678,8 @@ const StarPageScene = ({star}) => {
                     zIndex: -1,
                 }}
                 >
-                <source src="/videos/loading-bg.mp4" type="video/mp4" />
-                Your browser does not support this file format
+                <source src="/textures/lightSpeed.webm" type="video/webm" />
+                Your browser does not support the WebM format.
                 </video>
                 <div
                 style={{
