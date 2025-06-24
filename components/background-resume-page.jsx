@@ -66,7 +66,7 @@ const ResumePageBackground = () => {
 
     let mouseX = 0;
     let mouseY = 0;
-    const sensitivity = 0.01;
+    const sensitivity = 0.05;
 
     // Handling camera move for mouse
     const handleMouseMove = (event) => {

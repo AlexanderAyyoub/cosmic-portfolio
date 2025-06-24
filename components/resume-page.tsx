@@ -184,7 +184,7 @@ export default function ResumePage() {
               textShadow: strongShadow 
             }}
           >
-            *Highly recommended*
+            Highly recommended
           </div>
         </div>
       </button>

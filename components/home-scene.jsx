@@ -21,6 +21,8 @@ import getStarfield from './getStarfield.js';
 
 const HomeScene = ({stars}) => {
     const router = useRouter();
+  
+
 
     useEffect(() => {
 
@@ -76,12 +78,12 @@ const HomeScene = ({stars}) => {
         light.position.set(-3,3,-10);
         scene.add(light);
 
-        const alight = new THREE.PointLight(0x404040,8000);
-        alight.position.set(-40, 50, -200);
-        scene.add(alight);
+        const moonLight = new THREE.PointLight(0x404040,20000);
+        moonLight.position.set(-40, 50, -190);
+        scene.add(moonLight);
 
-        // const lightHelper = new THREE.PointLightHelper(alight);
-        // scene.add(lightHelper)
+        const lightHelper = new THREE.PointLightHelper(moonLight);
+        scene.add(lightHelper)
         // const dlightHelper = new THREE.DirectionalLightHelper(light);
         // scene.add(dlightHelper)
 
@@ -92,7 +94,7 @@ const HomeScene = ({stars}) => {
 
         //FPS counter
         const stats = Stats()
-        // document.body.appendChild(stats.dom)
+        //document.body.appendChild(stats.dom)
 
         //Adding stars 
         const starArray = getStarfield({numStars: 500});
@@ -141,15 +143,30 @@ const HomeScene = ({stars}) => {
         });
 
         //Adding moon 
+
+        let moonMeshes = [];
+        let moon = null;
+
         dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
         loader.setDRACOLoader(dracoLoader);
-        
+
+
         loader.load('/models/Moon.glb', (gltf) => {
-            const saternMesh = gltf.scene;
-            saternMesh.position.set(-60, 70, -220);
-            saternMesh.scale.set(10, 10, 10); 
-            scene.add(saternMesh);
+            moon = gltf.scene;
+            moon.position.set(-60, 70, -220);
+            moon.scale.set(10, 10, 10);
+            moon.originalScale = moon.scale.clone(); 
+
+            moon.traverse(mesh => {
+                if (mesh.isMesh) {
+                moonMeshes.push(mesh); 
+                }
+            });
+
+
+            scene.add(moon);
         });
+
 
         //Funciton that lightent Hex color (for the stars and text)
         function lightenHexColor(hex, percent) {
@@ -242,12 +259,15 @@ const HomeScene = ({stars}) => {
         const scaleSpeed = 0.3;
         const fadeSpeedOpacity = 0.06;
 
+
+
         const onMouseMove = (event) => {
             pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
             pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
         
             raycaster.setFromCamera(pointer, camera);
             const intersects = raycaster.intersectObjects(allStarObjects);
+
         
             // Reset all stars to their original size
             allStarObjects.forEach(star => {
@@ -285,6 +305,20 @@ const HomeScene = ({stars}) => {
                 
                 controls.unlock();
             }
+
+            // Moon hover logic 
+            if (moon && moonMeshes.length > 0) {
+            const intersectsMoon = raycaster.intersectObjects(moonMeshes);            
+            if (intersectsMoon.length > 0) {
+                moon.scale.lerp(moon.originalScale.clone().multiplyScalar(1.3), 0.2);
+                controls.unlock();
+            } else {
+                moon.scale.lerp(moon.originalScale, 0.2);
+            }
+            }
+
+
+
         };
 
         window.addEventListener('mousemove', onMouseMove);
@@ -309,6 +343,15 @@ const HomeScene = ({stars}) => {
                 window.location.href = `/starPage/${starID}`;
                 }
             }
+            const intersectsMoon = raycaster.intersectObject(moon, true);
+            console.log('moonMeshes:', moonMeshes.length);
+            
+            if (intersectsMoon.length > 0) {
+                console.log("moon clicked");
+                router.push(`/`);
+                window.location.href = `/`
+            }
+            
         };
 
         window.addEventListener("click", onMouseClick);
@@ -378,7 +421,20 @@ const HomeScene = ({stars}) => {
         codingMesh.position.set(30,30,-40)
         codingMesh.rotation.set(9.7, 10.5, 9.7);
         scene.add(codingMesh)
-        
+
+        const resumePage = new Text();
+        resumePage.material = new THREE.MeshStandardMaterial({
+            color: "#FFFFFF",  
+            roughness: 0.5,   
+            emissive: new THREE.Color("#FFFFFF"),  
+            emissiveIntensity: 1, 
+            depthWrite: false,  
+        });
+        resumePage.text = "Resume Page"; 
+        resumePage.font = '/fonts/AlbertusMTStd.otf'; 
+        resumePage.fontSize = 10; 
+        resumePage.position.set(-85, 100, -220)
+        scene.add(resumePage)
 
 
         function animate() {
@@ -419,79 +475,79 @@ const HomeScene = ({stars}) => {
         };
     }, [router, stars]);
 
-    return (
-        <>
-            <div
-                id="global-loader"
-                style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                zIndex: 9999,
-                pointerEvents: 'auto',
-                transition: 'opacity 0.8s ease-in-out',
-                }}
-            >
-                <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    objectFit: 'cover',
-                    width: '100%',
-                    height: '100%',
-                    zIndex: -1,
-                }}
-                >
-                <source src="/textures/lightSpeed.webm" type="video/webm" />
-                Your browser does not support the WebM format.
-                </video>
-                <div
-                style={{
-                    fontFamily: 'AlbertusMTStd, sans-serif',
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    padding: '1rem',
-                }}
-                >
-                <style jsx global>{`
-                    @font-face {
-                    font-family: 'AlbertusMTStd';
-                    src: url('/fonts/AlbertusMTStd.otf') format('opentype');
-                    font-display: swap;
-                    }
-                `}</style>
+    // return (
+    //     <>
+    //         <div
+    //             id="global-loader"
+    //             style={{
+    //             position: 'fixed',
+    //             top: 0,
+    //             left: 0,
+    //             width: '100vw',
+    //             height: '100vh',
+    //             zIndex: 9999,
+    //             pointerEvents: 'auto',
+    //             transition: 'opacity 0.8s ease-in-out',
+    //             }}
+    //         >
+    //             <video
+    //             autoPlay
+    //             muted
+    //             loop
+    //             playsInline
+    //             style={{
+    //                 position: 'absolute',
+    //                 top: 0,
+    //                 left: 0,
+    //                 objectFit: 'cover',
+    //                 width: '100%',
+    //                 height: '100%',
+    //                 zIndex: -1,
+    //             }}
+    //             >
+    //             <source src="/textures/lightSpeed.webm" type="video/webm" />
+    //             Your browser does not support the WebM format.
+    //             </video>
+    //             <div
+    //             style={{
+    //                 fontFamily: 'AlbertusMTStd, sans-serif',
+    //                 position: 'absolute',
+    //                 inset: 0,
+    //                 display: 'flex',
+    //                 flexDirection: 'column',
+    //                 alignItems: 'center',
+    //                 justifyContent: 'center',
+    //                 color: 'white',
+    //                 padding: '1rem',
+    //             }}
+    //             >
+    //             <style jsx global>{`
+    //                 @font-face {
+    //                 font-family: 'AlbertusMTStd';
+    //                 src: url('/fonts/AlbertusMTStd.otf') format('opentype');
+    //                 font-display: swap;
+    //                 }
+    //             `}</style>
 
-                <h1 className="text-2xl mb-4 tracking-wide">Loading the Cosmos</h1>
-                <div className="w-1/2 max-w-md">
-                <progress
-                    id="global-progress-bar"
-                    value="0"
-                    max="100"
-                    className="w-full h-3 appearance-none overflow-hidden rounded bg-white/10 [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white"
-                />
-                </div>
-                <p id="global-progress-label" className="mt-4 text-sm text-gray-300">
-                    0%
-                </p>
-                </div>
-            </div>
+    //             <h1 className="text-2xl mb-4 tracking-wide">Loading the Cosmos</h1>
+    //             <div className="w-1/2 max-w-md">
+    //             <progress
+    //                 id="global-progress-bar"
+    //                 value="0"
+    //                 max="100"
+    //                 className="w-full h-3 appearance-none overflow-hidden rounded bg-white/10 [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white"
+    //             />
+    //             </div>
+    //             <p id="global-progress-label" className="mt-4 text-sm text-gray-300">
+    //                 0%
+    //             </p>
+    //             </div>
+    //         </div>
 
-            <div style={{ width: '100%', height: '100%' }} />
-            </>
+    //         <div style={{ width: '100%', height: '100%' }} />
+    //         </>
 
-    ); 
+    // ); 
      
 
      
