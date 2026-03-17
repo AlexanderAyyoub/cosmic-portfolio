@@ -72,13 +72,14 @@ const HomeScene = ({stars}) => {
         camera.position.set(0, 0, 0);
 
         
-        //Light
-        const light = new THREE.DirectionalLight(0x404040,5);
+        //Scene Light
+        const light = new THREE.DirectionalLight(0x404040,10);
         light.castShadow = true;
         light.position.set(-3,3,-10);
         scene.add(light);
 
-        const moonLight = new THREE.PointLight(0x404040,20000);
+        //Moon Light
+        const moonLight = new THREE.PointLight(0x404040,50000);
         moonLight.position.set(-40, 50, -190);
         scene.add(moonLight);
 
@@ -113,12 +114,23 @@ const HomeScene = ({stars}) => {
         });
 
         // Trying hdri 
-        const hdriLoader = new RGBELoader(loadingManager)
-        hdriLoader.load('/textures/homeScene.hdr', function (texture) {
+        // const hdriLoader = new RGBELoader(loadingManager)
+        // hdriLoader.load('/textures/homeScene.hdr', function (texture) {
+        // texture.mapping = THREE.EquirectangularReflectionMapping;
+        // scene.background = texture;
+        // scene.environment = texture;
+        // });
+        // renderer.outputColorSpace = THREE.SRGBColorSpace;
+        // renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        // renderer.toneMappingExposure = 2;
+
+        // Panorama background image (Faster loading then hdri Less space)
+        textureLoader.load('/textures/homePageBackground.webp', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
+        texture.colorSpace = THREE.SRGBColorSpace;
         scene.background = texture;
-        scene.environment = texture;
         });
+
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 2;
@@ -154,7 +166,7 @@ const HomeScene = ({stars}) => {
         loader.load('/models/Moon.glb', (gltf) => {
             moon = gltf.scene;
             moon.position.set(-60, 70, -220);
-            moon.scale.set(10, 10, 10);
+            moon.scale.set(7, 7, 7);
             moon.originalScale = moon.scale.clone(); 
 
             moon.traverse(mesh => {
