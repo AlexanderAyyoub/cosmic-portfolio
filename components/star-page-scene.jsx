@@ -663,23 +663,15 @@ const StarPageScene = ({star}) => {
                 transition: 'opacity 0.8s ease-in-out',
                 }}
             >
-                <video
+               <video
                 autoPlay
                 muted
                 loop
                 playsInline
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    objectFit: 'cover',
-                    width: '100%',
-                    height: '100%',
-                    zIndex: -1,
-                }}
+                preload="auto"
                 >
-                <source src="/textures/lightSpeed.webm" type="video/webm" />
-                Your browser does not support the WebM format.
+                <source src="/textures/lightSpeed.mp4" type="video/mp4" />
+                Your browser does not support the mp4 format.
                 </video>
                 <div
                 style={{

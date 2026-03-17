@@ -1,22 +1,20 @@
 [
   {
-    "title": "Portfolio Website",
-    "description": "A personal portfolio built with Next.js and Tailwind CSS.",
-    "link": "https://github.com/yourusername/portfolio",
-    "image": "/images/example1.webp"
+    "title": "Liquid Stress",
+    "description": "A solo productivity desktop app released on Steam with customizable timers, persistent task tracking, analytics, and hand-animated Blender assets.",
+    "link": "https://github.com/yourusername/liquid-stress",
+    "image": "/images/liquid-stress-1.webp, /images/liquid-stress-2.webp, /images/liquid-stress-3.webp"
   },
   {
-    "title": "Weather App",
-    "description": "A weather forecast application using OpenWeatherMap API.",
-    "link": "https://github.com/yourusername/weather-app",
-    "image": "/images/example2.webp"
+    "title": "Cosmic Portfolio",
+    "description": "A full-stack interactive portfolio where projects appear as navigable stars in a Three.js galaxy with shaders, post-processing, and a secure admin panel.",
+    "link": "https://github.com/yourusername/cosmic-portfolio",
+    "image": "/images/example1.webp, /images/cosmic-portfolio-2.webp, /images/cosmic-portfolio-3.webp"
   },
-
   {
-    "title": "My Project",
-    "description": "An example project with multiple images.",
-    "link": "https://github.com/myproject",
-    "image": "/images/example2.webp, /images/example1.webp, /images/example2.webp"
+    "title": "SEC Financial Fund Scraper",
+    "description": "A headless Playwright automation tool that crawls 77,000+ adviserinfo.sec.gov pages with retry logic, backoff handling, and resume-safe CSV deduplication.",
+    "link": "https://github.com/yourusername/sec-financial-fund-scraper",
+    "image": "/images/sec-scraper-1.webp, /images/sec-scraper-2.webp"
   }
-
 ]
