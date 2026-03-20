@@ -439,6 +439,7 @@ const HomeScene = ({stars}) => {
         composer.addPass(bloomPass);
 
         //Constaliation titles 
+        
         const codingMesh = new Text();
         codingMesh.material = new THREE.MeshStandardMaterial({
             color: "#FFFFFF",  

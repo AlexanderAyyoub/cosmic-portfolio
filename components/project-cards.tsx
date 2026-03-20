@@ -17,15 +17,37 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, index }: ProjectCardProps) {
-  const images = project.image?.split(',').slice(0, 4) || [];
+  const images = (project.image ?? "")
+    .split(",")
+    .map((img) => img.trim())
+    .filter((img) => img.length > 0)
+    .slice(0, 4);
+
+  const hasImages = images.length > 0;
+
   const [currentImage, setCurrentImage] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayedImage, setDisplayedImage] = useState(0);
 
-  // Fading image transition logic 
+  // Keep indexes valid if a project has fewer/no images
+  useEffect(() => {
+    if (!hasImages) {
+      setCurrentImage(0);
+      setDisplayedImage(0);
+      setIsTransitioning(false);
+      return;
+    }
+
+    if (currentImage >= images.length) {
+      setCurrentImage(0);
+      setDisplayedImage(0);
+    }
+  }, [hasImages, images.length, currentImage]);
+
+  // Fading image transition logic
   const changeImage = (newIndex: number): void => {
-    if (isTransitioning) return;
-    
+    if (isTransitioning || !hasImages) return;
+
     setIsTransitioning(true);
 
     setTimeout(() => {
@@ -34,41 +56,53 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
         setIsTransitioning(false);
         setCurrentImage(newIndex);
       }, 50);
-    }, 300); 
+    }, 300);
   };
 
   useEffect(() => {
-    setDisplayedImage(currentImage);
-  }, [currentImage]);
+    if (hasImages) {
+      setDisplayedImage(currentImage);
+    }
+  }, [currentImage, hasImages]);
 
   return (
-    <Card key={index} className="rounded-sm border shadow-none overflow-hidden" style={{ backgroundColor: '#000E14', borderColor: '#2B3F2F' }}>
+    <Card
+      key={index}
+      className="rounded-sm border shadow-none overflow-hidden"
+      style={{ backgroundColor: '#000E14', borderColor: '#2B3F2F' }}
+    >
       <CardHeader>
-        <CardTitle className="text-lg" style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC' }}>
+        <CardTitle
+          className="text-lg"
+          style={{ fontFamily: 'AlbertusMTStd, serif', color: '#EEE8DC' }}
+        >
           {project.title}
         </CardTitle>
       </CardHeader>
 
-      {images.length > 0 && (
+      {hasImages && (
         <div className="relative w-full px-4 pb-2">
           <div className="w-full h-48 relative overflow-hidden">
             <img
-              src={images[displayedImage].trim()}
+              src={images[displayedImage]}
               alt={`${project.title} screenshot ${displayedImage + 1}`}
-              className={`w-full h-48 object-cover rounded-lg border-2 border-zinc-700 absolute inset-0 transition-opacity duration-300 ease-in-out ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}
+              className={`w-full h-48 object-cover rounded-lg border-2 border-zinc-700 absolute inset-0 transition-opacity duration-300 ease-in-out ${
+                isTransitioning ? 'opacity-0' : 'opacity-100'
+              }`}
             />
           </div>
+
           {images.length > 1 && (
             <div className="absolute inset-0 flex items-center justify-between px-2">
-              <button 
-                onClick={() => changeImage((currentImage - 1 + images.length) % images.length)} 
+              <button
+                onClick={() => changeImage((currentImage - 1 + images.length) % images.length)}
                 className="text-white bg-black/50 rounded-full px-2 py-1 hover:bg-black/70 transition"
                 disabled={isTransitioning}
               >
                 ‹
               </button>
-              <button 
-                onClick={() => changeImage((currentImage + 1) % images.length)} 
+              <button
+                onClick={() => changeImage((currentImage + 1) % images.length)}
                 className="text-white bg-black/50 rounded-full px-2 py-1 hover:bg-black/70 transition"
                 disabled={isTransitioning}
               >
@@ -76,11 +110,12 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               </button>
             </div>
           )}
+
           {images.length > 1 && (
             <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1">
               {images.map((_, i) => (
-                <button 
-                  key={i} 
+                <button
+                  key={i}
                   onClick={() => changeImage(i)}
                   className={`h-2 w-2 rounded-full ${i === currentImage ? 'bg-white' : 'bg-white/50'}`}
                   aria-label={`View image ${i + 1}`}

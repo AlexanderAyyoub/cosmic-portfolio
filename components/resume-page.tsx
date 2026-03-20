@@ -6,6 +6,9 @@ import ResumePageBackground from "@/components/background-resume-page";
 import ProjectCard from "@/components/project-cards";
 import projectsData from "@/public/projects.json";
 import { useRouter } from 'next/navigation';
+import { Mail } from 'lucide-react'
+import { FaGithub } from "react-icons/fa";
+
 
 export default function ResumePage() {
   const router = useRouter();
@@ -58,21 +61,42 @@ return (
               color: '#EEE8DC',
             }}
           >
-            Ratatouille the Developer
+            Alexander Ayyoub
           </div>
 
           <div
-            className="text-sm md:text-base"
+            className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base"
             style={{
               color: '#C2C8B8',
               textShadow: strongShadow,
             }}
           >
-            555-555-5555 | hello@email.com | github.com/yourgithub | linkedin.com/in/yourlinkedin
+            <span>732-772-5451</span>
+
+            <span className="opacity-60">|</span>
+
+            <a
+              href="mailto:AlexanderAyyoub1@gmail.com"
+              className="inline-flex items-center gap-2 text-[#C2C8B8] hover:text-[#EEE8DC] transition-colors"
+            >
+              <Mail size={16} />
+              <span>AlexanderAyyoub1@gmail.com</span>
+            </a>
+
+            <span className="opacity-60">|</span>
+
+            <a
+              href="https://github.com/AlexanderAyyoub"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-[#C2C8B8] hover:text-[#EEE8DC] transition-colors"
+            >
+              <FaGithub size={16} />
+              <span>github.com/AlexanderAyyoub</span>
+            </a>
           </div>
         </header>
 
-        {/* Rounded panel starts after title */}
         <div
           className="relative overflow-hidden rounded-[28px]"
           style={{
@@ -82,7 +106,6 @@ return (
           }}
         >
           <div className="px-6 md:px-8 lg:px-10 py-8 space-y-14">
-            {/* Experience */}
             <section className="space-y-5">
               <div
                 className="text-2xl md:text-3xl font-semibold border-b pb-2"
@@ -205,7 +228,6 @@ return (
               </Card>
             </section>
 
-            {/* Projects */}
             <section className="space-y-6">
               <div
                 className="text-2xl md:text-3xl font-semibold border-b pb-2"
@@ -226,7 +248,6 @@ return (
               </div>
             </section>
 
-            {/* Education */}
             <section className="space-y-5">
               <div
                 className="text-2xl md:text-3xl font-semibold border-b pb-2"
@@ -299,7 +320,6 @@ return (
               </Card>
             </section>
 
-            {/* Skills */}
             <section className="space-y-5">
               <div
                 className="text-2xl md:text-3xl font-semibold border-b pb-2"

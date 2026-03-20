@@ -2,12 +2,10 @@
 import { useEffect } from 'react';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
-
 import * as THREE from 'three';
 import getStarfield from './getStarfield.js';
 
 const ResumePageBackground = () => {
-  
   useEffect(() => {
     // Scene setup
     const windowW = window.innerWidth;
@@ -15,11 +13,13 @@ const ResumePageBackground = () => {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(95, windowW / windowH, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    
+
     renderer.setSize(windowW, windowH);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setClearColor(0x000000, 0);
-    scene.fog = new THREE.FogExp2( 0x0e402a, .025 );
+    renderer.domElement.style.opacity = '0';
+    renderer.domElement.style.transition = 'opacity 2s ease';
+    scene.fog = new THREE.FogExp2(0x0e402a, 0.025);
 
     // Create container and append renderer
     const container = document.getElementById('threejs-background');
@@ -27,38 +27,39 @@ const ResumePageBackground = () => {
       container.appendChild(renderer.domElement);
     }
 
-    // test sphere
+    // Test sphere
     const sphereGeometry = new THREE.SphereGeometry(15, 64, 64);
     const sphereMaterial = new THREE.MeshBasicMaterial({
       color: 0x4f46e5,
     });
-    
+
     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.position.set(-15, -5, -15);
     // scene.add(sphere);
-    //test lights 
-    const light = new THREE.AmbientLight(0x404040,5);
-    light.position.set(-3,3,-10);
+
+    // Lights
+    const light = new THREE.AmbientLight(0x404040, 5);
+    light.position.set(-3, 3, -10);
     scene.add(light);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
     directionalLight.position.set(10, 10, 10);
     scene.add(directionalLight);
-    //loading satern 
+
+    // Load sun model
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
     loader.setDRACOLoader(dracoLoader);
-    
-    loader.load('/models/star_models/sun.glb', (gltf) => {
-        const saternMesh = gltf.scene;
-        saternMesh.position.set(-30, -20, -48);
-        saternMesh.scale.set(50+13, 50+13, 50+13); 
-        scene.add(saternMesh);
-    });
-   
 
-    //Starfield
+    loader.load('/models/star_models/sun.glb', (gltf) => {
+      const saternMesh = gltf.scene;
+      saternMesh.position.set(-30, -20, -48);
+      saternMesh.scale.set(63, 63, 63);
+      scene.add(saternMesh);
+    });
+
+    // Starfield
     const starfield = getStarfield({ numStars: 500 });
     scene.add(starfield);
 
@@ -86,8 +87,7 @@ const ResumePageBackground = () => {
 
     window.addEventListener('resize', handleResize);
 
-
-    //Adding video plane
+    // Adding video plane
     const video = document.createElement('video');
     video.src = '/textures/sun_flare/outputv2.webm';
     video.crossOrigin = 'anonymous';
@@ -97,7 +97,7 @@ const ResumePageBackground = () => {
     video.autoplay = true;
 
     video.addEventListener('loadeddata', () => {
-    video.play();
+      video.play();
     });
 
     const videoTexture = new THREE.VideoTexture(video);
@@ -107,20 +107,20 @@ const ResumePageBackground = () => {
     videoTexture.generateMipmaps = false;
 
     const material = new THREE.ShaderMaterial({
-    uniforms: {
+      uniforms: {
         map: { value: videoTexture },
-        threshold: { value: 0.000000000001 }, // more or less black area
-        darkColor: { value: new THREE.Color(0xffffff) },  // Default black
-        lightColor: { value: new THREE.Color(0xffffff) }  // Default white
-    },
-    vertexShader: `
+        threshold: { value: 0.000000000001 },
+        darkColor: { value: new THREE.Color(0xffffff) },
+        lightColor: { value: new THREE.Color(0xffffff) }
+      },
+      vertexShader: `
         varying vec2 vUv;
         void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
-    `,
-    fragmentShader: `
+      `,
+      fragmentShader: `
         uniform sampler2D map;
         uniform float threshold;
         uniform vec3 darkColor;
@@ -128,35 +128,36 @@ const ResumePageBackground = () => {
         varying vec2 vUv;
 
         void main() {
-        vec4 texColor = texture2D(map, vUv);
-        float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
-        float mixFactor = smoothstep(threshold, 1.0, brightness);
-        vec3 resultColor = mix(darkColor, lightColor, mixFactor);
+          vec4 texColor = texture2D(map, vUv);
+          float brightness = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+          float mixFactor = smoothstep(threshold, 1.0, brightness);
+          vec3 resultColor = mix(darkColor, lightColor, mixFactor);
 
-        // Make alpha depend on brightness
-        float alpha = smoothstep(threshold, 1.0, brightness); // fade in based on threshold
-        gl_FragColor = vec4(resultColor, alpha);
+          float alpha = smoothstep(threshold, 1.0, brightness);
+          gl_FragColor = vec4(resultColor, alpha);
         }
-    `,
-    transparent: true,
-    side: THREE.DoubleSide
+      `,
+      transparent: true,
+      side: THREE.DoubleSide
     });
 
     const geometry = new THREE.PlaneGeometry(2, 2);
     const plane = new THREE.Mesh(geometry, material);
     plane.position.set(-2.8, -2.1, -4);
-    plane.scale.set(36, 31, 10);  
-
+    plane.scale.set(36, 31, 10);
     plane.lookAt(camera.position);
 
     material.uniforms.darkColor.value.set(0x1fad70);
-    material.uniforms.lightColor.value.set(0xd5f2e6); 
-
+    material.uniforms.lightColor.value.set(0xd5f2e6);
 
     scene.add(plane);
 
+    // Fade canvas in after initial setup
+    setTimeout(() => {
+      renderer.domElement.style.opacity = '1';
+    }, 1200);
+
     function animate() {
-      // Camera movement
       const targetX = mouseX * sensitivity;
       const targetY = mouseY * sensitivity;
 
@@ -170,26 +171,33 @@ const ResumePageBackground = () => {
       sphere.rotation.y += 0.01;
 
       renderer.render(scene, camera);
-      renderer.setAnimationLoop(animate);
     }
 
-    animate();
+    renderer.setAnimationLoop(animate);
 
-    //cleaning up function
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
-      
-      if (container && renderer.domElement) {
+
+      if (container && renderer.domElement && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
 
+      video.pause();
+      videoTexture.dispose();
+      geometry.dispose();
+      material.dispose();
+      sphereGeometry.dispose();
+      sphereMaterial.dispose();
+      dracoLoader.dispose();
+
+      renderer.setAnimationLoop(null);
       renderer.dispose();
     };
   }, []);
 
   return (
-    <div 
+    <div
       id="threejs-background"
       style={{
         position: 'fixed',
@@ -198,7 +206,8 @@ const ResumePageBackground = () => {
         width: '100%',
         height: '100%',
         zIndex: -1,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        background: '#000000',
       }}
     />
   );

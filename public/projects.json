@@ -1,9 +1,9 @@
 [
   {
     "title": "Liquid Stress",
-    "description": "A solo productivity desktop app released on Steam with customizable timers, persistent task tracking, analytics, and hand-animated Blender assets.",
+    "description": "Shipped a solo productivity desktop app to Steam achieving 95.5K impressions, 24K page visits, a 14.5% click-through rate, and 300+ downloads. ",
     "link": "https://github.com/yourusername/liquid-stress",
-    "image": "/images/liquid-stress-1.webp, /images/liquid-stress-2.webp, /images/liquid-stress-3.webp"
+    "image": "/images/liquidStress/1.webp, /images/liquidStress/2.webp,/images/liquidStress/3.webp,/images/liquidStress/4.webp"
   },
   {
     "title": "Cosmic Portfolio",
@@ -15,6 +15,6 @@
     "title": "SEC Financial Fund Scraper",
     "description": "A headless Playwright automation tool that crawls 77,000+ adviserinfo.sec.gov pages with retry logic, backoff handling, and resume-safe CSV deduplication.",
     "link": "https://github.com/yourusername/sec-financial-fund-scraper",
-    "image": "/images/sec-scraper-1.webp, /images/sec-scraper-2.webp"
+    "image": ""
   }
 ]
