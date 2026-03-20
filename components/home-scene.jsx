@@ -438,37 +438,69 @@ const HomeScene = ({stars}) => {
         bloomPass.renderToScreen = true;
         composer.addPass(bloomPass);
 
-        //Constaliation titles 
+        //Constaliation titles Function
+        function createTitle({
+            text,
+            angleDeg = 0,
+            radius = 50,
+            height = 20,
+            center = [0, 0, 0],
+            fontSize = 5,
+        }) {
+            const mesh = new Text();
+
+            const angle = THREE.MathUtils.degToRad(angleDeg);
+            mesh.position.set(
+                center[0] + Math.cos(angle) * radius,
+                center[1] + height,
+                center[2] + Math.sin(angle) * radius
+            );
+
+            mesh.text = text;
+            mesh.font = '/fonts/AlbertusMTStd.otf';
+            mesh.fontSize = fontSize;
+            mesh.anchorX = 'center';
+            mesh.anchorY = 'middle';
+            mesh.color = 0xffffff;
+            mesh.frustumCulled = false;
+
+            scene.add(mesh);
+            mesh.lookAt(new THREE.Vector3(...center));
+            mesh.sync();
+
+            return mesh;
+        }
+
+        const titleCenter = [0, 0, 0];
+
+        const codingMesh = createTitle({
+            text: "Coding Projects",
+            angleDeg: 35,
+            radius: 55,
+            height: 30,
+            center: titleCenter,
+            fontSize: 5,
+        });
+
+        const resumePage = createTitle({
+            text: "Resume Page",
+            angleDeg: -104,
+            radius: 200,
+            height: 80,
+            center: titleCenter,
+            fontSize: 10,
+        });
+
+        const miscellaneouseMesh = createTitle({
+            text: "Miscellaneous",
+            angleDeg: -35,
+            radius: 85,
+            height: 80,
+            center: titleCenter,
+            fontSize: 4,
+        });   
+
         
-        const codingMesh = new Text();
-        codingMesh.material = new THREE.MeshStandardMaterial({
-            color: "#FFFFFF",  
-            roughness: 0.5,   
-            emissive: new THREE.Color("#FFFFFF"),  
-            emissiveIntensity: 1, 
-            depthWrite: false,  
-        });
-        codingMesh.text = "Coding Projects"; 
-        codingMesh.font = '/fonts/AlbertusMTStd.otf'; 
-        codingMesh.fontSize = 5; 
-        codingMesh.position.set(30,30,-40)
-        codingMesh.rotation.set(9.7, 10.5, 9.7);
-        scene.add(codingMesh)
-
-        const resumePage = new Text();
-        resumePage.material = new THREE.MeshStandardMaterial({
-            color: "#FFFFFF",  
-            roughness: 0.5,   
-            emissive: new THREE.Color("#FFFFFF"),  
-            emissiveIntensity: 1, 
-            depthWrite: false,  
-        });
-        resumePage.text = "Resume Page"; 
-        resumePage.font = '/fonts/AlbertusMTStd.otf'; 
-        resumePage.fontSize = 10; 
-        resumePage.position.set(-85, 100, -220)
-        scene.add(resumePage)
-
 
         function animate() {
             renderer.render(scene, camera);
@@ -510,70 +542,89 @@ const HomeScene = ({stars}) => {
     }, [router, stars]);
 
     return (
-        <>
-            <div
-                id="global-loader"
-                style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                zIndex: 9999,
-                pointerEvents: 'auto',
-                transition: 'opacity 0.8s ease-in-out',
-                }}
-            >
-                <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                >
-                <source src="/textures/lightSpeed.mp4" type="video/mp4" />
-                Your browser does not support the mp4 format.
-                </video>
-                <div
-                style={{
-                    fontFamily: 'AlbertusMTStd, sans-serif',
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    padding: '1rem',
-                }}
-                >
-                <style jsx global>{`
-                    @font-face {
-                    font-family: 'AlbertusMTStd';
-                    src: url('/fonts/AlbertusMTStd.otf') format('opentype');
-                    font-display: swap;
-                    }
-                `}</style>
+    <>
+        <div
+        id="global-loader"
+        style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            overflow: 'hidden', // prevents edge overflow
+            zIndex: 9999,
+            pointerEvents: 'auto',
+            transition: 'opacity 0.8s ease-in-out',
+        }}
+        >
+        {/* 🔥 Responsive background video */}
+        <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            }}
+        >
+            <source src="/textures/lightSpeed.mp4" type="video/mp4" />
+            Your browser does not support the mp4 format.
+        </video>
 
-                <h1 className="text-2xl mb-4 tracking-wide">Loading the Cosmos</h1>
-                <div className="w-1/2 max-w-md">
-                <progress
-                    id="global-progress-bar"
-                    value="0"
-                    max="100"
-                    className="w-full h-3 appearance-none overflow-hidden rounded bg-white/10 [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white"
-                />
-                </div>
-                <p id="global-progress-label" className="mt-4 text-sm text-gray-300">
-                    0%
-                </p>
-                </div>
+        {/* Overlay content */}
+        <div
+            style={{
+            fontFamily: 'AlbertusMTStd, sans-serif',
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            padding: '1rem',
+            }}
+        >
+            <style jsx global>{`
+            @font-face {
+                font-family: 'AlbertusMTStd';
+                src: url('/fonts/AlbertusMTStd.otf') format('opentype');
+                font-display: swap;
+            }
+            `}</style>
+
+            <h1 className="text-2xl mb-4 tracking-wide">
+            Loading the Cosmos
+            </h1>
+
+            <div className="w-1/2 max-w-md">
+            <progress
+                id="global-progress-bar"
+                value="0"
+                max="100"
+                className="w-full h-3 appearance-none overflow-hidden rounded bg-white/10 [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white"
+            />
             </div>
 
-            <div style={{ width: '100%', height: '100%' }} />
-            </>
+            <p
+            id="global-progress-label"
+            className="mt-4 text-sm text-gray-300"
+            >
+            0%
+            </p>
+        </div>
+        </div>
 
-    ); 
+        <div style={{ width: '100%', height: '100%' }} />
+    </>
+    );
      
 
      
