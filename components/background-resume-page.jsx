@@ -69,13 +69,54 @@ const ResumePageBackground = () => {
     let mouseY = 0;
     const sensitivity = 0.05;
 
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+    let isTouching = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchBaseX = 0;
+    let touchBaseY = 0;
+
     // Handling camera move for mouse
     const handleMouseMove = (event) => {
+      if (isTouching) return;
       mouseX = (event.clientX / window.innerWidth) * 2 - 1;
       mouseY = (event.clientY / window.innerHeight) * 2 - 1;
     };
 
     document.addEventListener('mousemove', handleMouseMove);
+
+    const handleTouchStart = (event) => {
+      if (!event.touches || !event.touches[0]) return;
+
+      isTouching = true;
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+      touchBaseX = mouseX;
+      touchBaseY = mouseY;
+    };
+
+    const handleTouchMove = (event) => {
+      if (!isTouching || !event.touches || !event.touches[0]) return;
+
+      const touchX = event.touches[0].clientX;
+      const touchY = event.touches[0].clientY;
+
+      const deltaX = touchX - touchStartX;
+      const deltaY = touchY - touchStartY;
+
+      mouseX = clamp(touchBaseX + deltaX / (window.innerWidth * .1), -1, 1);
+      mouseY = clamp(touchBaseY + deltaY / (window.innerHeight * .1 ), -1, 1);
+    };
+
+    const handleTouchEnd = () => {
+      isTouching = false;
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
 
     // Handle window resize
     const handleResize = () => {
@@ -158,6 +199,11 @@ const ResumePageBackground = () => {
     }, 1200);
 
     function animate() {
+      if (!isTouching) {
+        mouseX += (0 - mouseX) * 0.03;
+        mouseY += (0 - mouseY) * 0.03;
+      }
+
       const targetX = mouseX * sensitivity;
       const targetY = mouseY * sensitivity;
 
@@ -177,6 +223,10 @@ const ResumePageBackground = () => {
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
       window.removeEventListener('resize', handleResize);
 
       if (container && renderer.domElement && container.contains(renderer.domElement)) {

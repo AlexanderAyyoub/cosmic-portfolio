@@ -1,12 +1,18 @@
-import 'dotenv/config';
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from 'mysql2/promise';
+import "dotenv/config";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 
 if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not defined in environment variables');
+  throw new Error("DATABASE_URL is not defined in environment variables");
 }
 
-const connection = await mysql.createConnection(process.env.DATABASE_URL);
-const db = drizzle(connection);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
+const db = drizzle(pool);
 
 export { db };
