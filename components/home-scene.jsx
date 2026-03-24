@@ -101,8 +101,8 @@ const HomeScene = ({stars}) => {
         moonLight.position.set(-40, 50, -190);
         scene.add(moonLight);
 
-        const lightHelper = new THREE.PointLightHelper(moonLight);
-        scene.add(lightHelper)
+        // const lightHelper = new THREE.PointLightHelper(moonLight);
+        // scene.add(lightHelper)
         // const dlightHelper = new THREE.DirectionalLightHelper(light);
         // scene.add(dlightHelper)
 
@@ -472,15 +472,8 @@ const HomeScene = ({stars}) => {
         }
 
         const titleCenter = [0, 0, 0];
-
-        const codingMesh = createTitle({
-            text: "Coding Projects",
-            angleDeg: 35,
-            radius: 55,
-            height: 30,
-            center: titleCenter,
-            fontSize: 5,
-        });
+        
+        // Just add 40 to angle Deg to add a new one 
 
         const resumePage = createTitle({
             text: "Resume Page",
@@ -491,14 +484,51 @@ const HomeScene = ({stars}) => {
             fontSize: 10,
         });
 
-        const miscellaneouseMesh = createTitle({
-            text: "Miscellaneous",
-            angleDeg: -35,
-            radius: 85,
+        const codingMesh = createTitle({
+            text: "Coding Projects",
+            angleDeg: -40,
+            radius: 200,
+            height: 90,
+            center: titleCenter,
+            fontSize: 10,
+        });
+
+        const modelingMesh = createTitle({
+            text: "3D Modeling",
+            angleDeg: 0,
+            radius: 200,
             height: 80,
             center: titleCenter,
-            fontSize: 4,
-        });   
+            fontSize: 10
+        });
+
+        const miscellaneousMesh = createTitle({
+            text: "Miscellaneous",
+            angleDeg: 40,
+            radius: 200,
+            height: 80,
+            center: titleCenter,
+            fontSize: 10
+        });  
+
+         const sewingMesh = createTitle({
+            text: "Sewing Projects",
+            angleDeg: 80,
+            radius: 200,
+            height: 80,
+            center: titleCenter,
+            fontSize: 10
+        });  
+
+        const booksMesh = createTitle({
+            text: "Fav. Books",
+            angleDeg: 120,
+            radius: 200,
+            height: 80,
+            center: titleCenter,
+            fontSize: 10
+        });  
+       
 
         
 
@@ -601,7 +631,7 @@ const HomeScene = ({stars}) => {
             `}</style>
 
             <h1 className="text-2xl mb-4 tracking-wide">
-            Loading the Cosmos
+            Loading
             </h1>
 
             <div className="w-1/2 max-w-md">

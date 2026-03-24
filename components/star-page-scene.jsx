@@ -649,68 +649,88 @@ const StarPageScene = ({star}) => {
           window.addEventListener('beforeunload', disposeAll);
     })
     return (
-        <>
-            <div
-                id="global-loader"
-                style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100vw',
-                height: '100vh',
-                zIndex: 9999,
-                pointerEvents: 'auto',
-                transition: 'opacity 0.8s ease-in-out',
-                }}
-            >
-               <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                >
-                <source src="/textures/lightSpeed.mp4" type="video/mp4" />
-                Your browser does not support the mp4 format.
-                </video>
-                <div
-                style={{
-                    fontFamily: 'AlbertusMTStd, sans-serif',
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    padding: '1rem',
-                }}
-                >
-                <style jsx global>{`
-                    @font-face {
-                    font-family: 'AlbertusMTStd';
-                    src: url('/fonts/AlbertusMTStd.otf') format('opentype');
-                    font-display: swap;
-                    }
-                `}</style>
+    <>
+        <div
+        id="global-loader"
+        style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            overflow: 'hidden', // prevents edge overflow
+            zIndex: 9999,
+            pointerEvents: 'auto',
+            transition: 'opacity 0.8s ease-in-out',
+        }}
+        >
+        {/* 🔥 Responsive background video */}
+        <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            }}
+        >
+            <source src="/textures/lightSpeed.mp4" type="video/mp4" />
+            Your browser does not support the mp4 format.
+        </video>
 
-                <h1 className="text-2xl mb-4 tracking-wide">Loading the Cosmos</h1>
-                <div className="w-1/2 max-w-md">
-                <progress
-                    id="global-progress-bar"
-                    value="0"
-                    max="100"
-                    className="w-full h-3 appearance-none overflow-hidden rounded bg-white/10 [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white"
-                />
-                </div>
-                <p id="global-progress-label" className="mt-4 text-sm text-gray-300">
-                    0%
-                </p>
-                </div>
+        {/* Overlay content */}
+        <div
+            style={{
+            fontFamily: 'AlbertusMTStd, sans-serif',
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            padding: '1rem',
+            }}
+        >
+            <style jsx global>{`
+            @font-face {
+                font-family: 'AlbertusMTStd';
+                src: url('/fonts/AlbertusMTStd.otf') format('opentype');
+                font-display: swap;
+            }
+            `}</style>
+
+            <h1 className="text-2xl mb-4 tracking-wide">
+            Loading
+            </h1>
+
+            <div className="w-1/2 max-w-md">
+            <progress
+                id="global-progress-bar"
+                value="0"
+                max="100"
+                className="w-full h-3 appearance-none overflow-hidden rounded bg-white/10 [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white"
+            />
             </div>
 
-            <div style={{ width: '100%', height: '100%' }} />
-            </>
+            <p
+            id="global-progress-label"
+            className="mt-4 text-sm text-gray-300"
+            >
+            0%
+            </p>
+        </div>
+        </div>
+
+        <div style={{ width: '100%', height: '100%' }} />
+    </>
     );
 };
 
