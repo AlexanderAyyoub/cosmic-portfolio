@@ -28,7 +28,7 @@ export async function saveStars(formStars: Star[]) {
         
         // Check if the star already exists
         const existingStars = await tx
-          .select({ id: starTable.starID })
+          .select
           .from(starTable)
           .where(eq(starTable.starID, starID));
         

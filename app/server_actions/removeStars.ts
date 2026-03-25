@@ -9,7 +9,7 @@ export async function removeStar(starID: number) {
     return await db.transaction(async (tx) => {
       // Check if the star exists
       const existingStars = await tx
-        .select({ id: starTable.starID })
+        .select()
         .from(starTable)
         .where(eq(starTable.starID, starID));
       

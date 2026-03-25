@@ -41,7 +41,7 @@ export default async function getStarById(props: GetStarProps) {
             zPosition: starData.zPosition,
             modleName: starData.modleName,
             size: starData.size,
-            imageURL: starData.imageURL ? starData.imageURL.split(',') : null,
+            imageURL: starData.imageURL ? starData.imageURL.split(',') : [],
             color1: starData.color1,
             color2: starData.color2,
             color3: starData.color3,
