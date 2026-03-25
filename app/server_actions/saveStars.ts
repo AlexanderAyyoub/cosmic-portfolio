@@ -3,6 +3,7 @@
 import { db } from '@/lib/db';
 import { starTable } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
 
 export type Star = {
   starID: number;
@@ -23,7 +24,7 @@ export type Star = {
 
 export async function saveStars(formStars: Star[]) {
   try {
-    return await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       for (const star of formStars) {
         const starID = star.starID;
 
@@ -65,6 +66,15 @@ export async function saveStars(formStars: Star[]) {
 
       return { success: true };
     });
+
+    revalidatePath('/');
+    revalidatePath('/resume');
+
+    for (const star of formStars) {
+      revalidatePath(`/starPage/${star.starID}`);
+    }
+
+    return result;
   } catch (error) {
     console.error('Error saving stars:', error);
     return {
