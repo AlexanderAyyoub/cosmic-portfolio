@@ -1,26 +1,26 @@
-import { int, float, mysqlTable, varchar, text, mediumtext } from 'drizzle-orm/mysql-core';
+import { integer, real, pgTable, varchar, text } from 'drizzle-orm/pg-core';
 
-export const starTable = mysqlTable('star', {
-    starID: int('starID').notNull().primaryKey(),
-    name: text('Name'),
-    description: mediumtext('Description'),
-    xPosition: float('xPosition'),
-    yPosition: float('yPosition'),
-    zPosition: float('zPosition'),
-    modleName: text('modleName'),
-    size: float('Size'),
-    imageURL: text('imageURL'),
-    color1: varchar('color1', { length: 7 }),
-    color2: varchar('color2', { length: 7 }),
-    color3: varchar('color3', { length: 7 }),
-    color4: varchar('color4', { length: 7 }),
-    solarFlareGIF: varchar('solarFlareGIF', { length: 10000 }),
+export const starTable = pgTable('star', {
+  starID: integer('starID').notNull().primaryKey(),
+  name: text('Name'),
+  description: text('Description'),
+  xPosition: real('xPosition'),
+  yPosition: real('yPosition'),
+  zPosition: real('zPosition'),
+  modleName: text('modleName'),
+  size: real('Size'),
+  imageURL: text('imageURL'),
+  color1: varchar('color1', { length: 7 }),
+  color2: varchar('color2', { length: 7 }),
+  color3: varchar('color3', { length: 7 }),
+  color4: varchar('color4', { length: 7 }),
+  solarFlareGIF: text('solarFlareGIF'),
 });
 
-export const constellationTable = mysqlTable('Constellation', {
-    constellationID: int('constellationID').notNull().primaryKey(),
-    name: varchar('Name', { length: 45 }),
-    xPosition: float('xPosition'),
-    yPosition: float('yPosition'),
-    zPosition: float('zPosition'),
+export const constellationTable = pgTable('Constellation', {
+  constellationID: integer('constellationID').notNull().primaryKey(),
+  name: varchar('Name', { length: 45 }),
+  xPosition: real('xPosition'),
+  yPosition: real('yPosition'),
+  zPosition: real('zPosition'),
 });
