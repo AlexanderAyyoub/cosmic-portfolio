@@ -60,7 +60,7 @@ const ResumePageBackground = () => {
     });
 
     // Starfield
-    const starfield = getStarfield({ numStars: 500 });
+    const starfield = getStarfield({ numStars: 2000 });
     scene.add(starfield);
 
     camera.position.set(0, 0, 0);
@@ -196,7 +196,7 @@ const ResumePageBackground = () => {
     // Fade canvas in after initial setup
     setTimeout(() => {
       renderer.domElement.style.opacity = '1';
-    }, 1200);
+    }, 2000);
 
     function animate() {
       if (!isTouching) {
