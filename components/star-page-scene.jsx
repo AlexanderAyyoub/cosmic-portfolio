@@ -534,28 +534,36 @@ const StarPageScene = ({star}) => {
         const allImagePlanes = [];
 
         const imageUrls = Array.isArray(star.imageURL)
-        ? star.imageURL
-        : typeof star.imageURL === "string" && star.imageURL.trim() !== ""
-            ? star.imageURL.split(",").map((url) => url.trim()).filter(Boolean)
-            : [];
+            ? star.imageURL
+            : typeof star.imageURL === "string" && star.imageURL.trim() !== ""
+                ? star.imageURL.split(",").map((url) => url.trim()).filter(Boolean)
+                : [];
 
         imageUrls.forEach((url) => {
-        const imagePath = `/images/${url}`;
+            const imagePath = url.trim();
 
-        const geometry = new THREE.PlaneGeometry(16, 9);
-        const texture = new THREE.TextureLoader(loadingManager).load(imagePath);
-        const material = new THREE.MeshBasicMaterial({
-            map: texture,
-            side: THREE.DoubleSide,
+            const geometry = new THREE.PlaneGeometry(16, 9);
+            const texture = new THREE.TextureLoader(loadingManager).load(
+                imagePath,
+                undefined,
+                undefined,
+                (error) => {
+                    console.error("Failed to load image:", imagePath, error);
+                }
+            );
+
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide,
+                transparent: true,
+            });
+
+            const plane = new THREE.Mesh(geometry, material);
+            plane.scale.set(.14, .14, .14);
+
+            scene.add(plane);
+            allImagePlanes.push(plane);
         });
-
-        const plane = new THREE.Mesh(geometry, material);
-        plane.scale.set(0.14, 0.14, 0.14);
-
-        scene.add(plane);
-        allImagePlanes.push(plane);
-        });
-
 
         //Adding stars 
         const starArray = getStarfield({numStars: 500});
