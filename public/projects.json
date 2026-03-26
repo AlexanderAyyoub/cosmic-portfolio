@@ -9,7 +9,7 @@
     "title": "Cosmic Portfolio",
     "description": "A full-stack interactive portfolio where projects appear as navigable stars in a Three.js galaxy with shaders, post-processing, and a secure admin panel.",
     "link": "https://github.com/yourusername/cosmic-portfolio",
-    "image": "/images/example1.webp, /images/cosmic-portfolio-2.webp, /images/cosmic-portfolio-3.webp"
+    "image": "/images/cosmicPortfolio/1.webp, /images/cosmicPortfolio/2.webp, /images/cosmicPortfolio/3.webp, /images/cosmicPortfolio/4.webp"
   },
   {
     "title": "SEC Financial Fund Scraper",
