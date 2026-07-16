@@ -46,8 +46,18 @@ const ResumePageBackground = () => {
     directionalLight.position.set(10, 10, 10);
     scene.add(directionalLight);
 
+    //Load Manager 
+    const manager = new THREE.LoadingManager();
+    const safetyTimer = setTimeout(() => {
+      renderer.domElement.style.opacity = '1';
+    }, 8000);
+    manager.onLoad = () => {
+      clearTimeout(safetyTimer);
+      renderer.domElement.style.opacity = '1';
+    };
+
     // Load sun model
-    const loader = new GLTFLoader();
+    const loader = new GLTFLoader(manager);
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
     loader.setDRACOLoader(dracoLoader);
@@ -130,16 +140,21 @@ const ResumePageBackground = () => {
 
     // Adding video plane
     const video = document.createElement('video');
-    video.src = '/textures/sun_flare/outputv2.webm';
+    const videoSrc = '/textures/sun_flare/outputv2.mp4';
+    video.src = videoSrc;
     video.crossOrigin = 'anonymous';
     video.loop = true;
     video.muted = true;
     video.playsInline = true;
     video.autoplay = true;
 
-    video.addEventListener('loadeddata', () => {
-      video.play();
-    });
+    manager.itemStart(videoSrc);
+    const videoFallback = setTimeout(() => manager.itemEnd(videoSrc), 6000);
+    video.addEventListener('canplaythrough', () => {
+      clearTimeout(videoFallback);
+      manager.itemEnd(videoSrc);
+      video.play().catch(() => {});
+    }, { once: true });
 
     const videoTexture = new THREE.VideoTexture(video);
     videoTexture.minFilter = THREE.LinearFilter;
@@ -193,10 +208,7 @@ const ResumePageBackground = () => {
 
     scene.add(plane);
 
-    // Fade canvas in after initial setup
-    setTimeout(() => {
-      renderer.domElement.style.opacity = '1';
-    }, 2000);
+    
 
     function animate() {
       if (!isTouching) {
@@ -222,6 +234,8 @@ const ResumePageBackground = () => {
     renderer.setAnimationLoop(animate);
 
     return () => {
+      clearTimeout(safetyTimer);
+      clearTimeout(videoFallback);
       document.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);

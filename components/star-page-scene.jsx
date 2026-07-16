@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from 'react';
+import { useEffect,useMemo } from 'react';
 import { EXRLoader } from 'three/examples/jsm/Addons.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
@@ -17,6 +17,15 @@ import { Text } from 'troika-three-text';
 
 const StarPageScene = ({star}) => {
     const router = useRouter();
+    const warpStars = useMemo(() => (
+            Array.from({ length: 350 }, () => ({
+                angle: `${Math.random() * 360}deg`,
+                delay: `-${Math.random() * 2}s`,
+                duration: `${0.8 + Math.random() * 0.8}s`,
+                width: `${1 + Math.random() * 1.5}px`,
+                height: `${420 + Math.random() * 420}px`,
+            }))
+        ), []);
     
     useEffect(() => {
         
@@ -665,88 +674,111 @@ const StarPageScene = ({star}) => {
           window.addEventListener('beforeunload', disposeAll);
     })
     return (
-    <>
-        <div
-        id="global-loader"
-        style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            overflow: 'hidden', // prevents edge overflow
-            zIndex: 9999,
-            pointerEvents: 'auto',
-            transition: 'opacity 0.8s ease-in-out',
-        }}
-        >
-        {/* 🔥 Responsive background video */}
-        <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-            }}
-        >
-            <source src="/textures/lightSpeed.mp4" type="video/mp4" />
-            Your browser does not support the mp4 format.
-        </video>
+        <>
+            <div
+                id="global-loader"
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    overflow: 'hidden',
+                    zIndex: 9999,
+                    pointerEvents: 'auto',
+                    transition: 'opacity 0.8s ease-in-out',
+                    background: 'black',
+                }}
+            >
+                {/* CSS Warp Speed */}
+                <style>{`
+                    @keyframes warpStreak {
+                        0%   { transform: translateX(-50%) translateY(0)      scaleY(0); opacity: 0; }
+                        5%   { opacity: 1; }
+                        100% { transform: translateX(-50%) translateY(-110vh) scaleY(1); opacity: 1; }
+                    }
+                    .warp-anchor {
+                        position: absolute;
+                        left: 50%;
+                        top: 50%;
+                        width: 0;
+                        height: 0;
+                    }
+                    .warp-star {
+                        position: absolute;
+                        left: 0;
+                        bottom: 0;
+                        background: linear-gradient(to top, transparent 0%, transparent 50%, white 100%);
+                        transform-origin: center bottom;
+                        animation: warpStreak linear infinite;
+                        will-change: transform, opacity;
+                    }
+                `}</style>
+                {warpStars.map((s, i) => (
+                    <div
+                        key={i}
+                        className="warp-anchor"
+                        style={{ transform: `rotate(${s.angle})` }}
+                    >
+                        <div
+                            className="warp-star"
+                            style={{
+                                width: s.width,
+                                height: s.height,
+                                animationDelay: s.delay,
+                                animationDuration: s.duration,
+                            }}
+                        />
+                    </div>
+                ))}
 
-        {/* Overlay content */}
-        <div
-            style={{
-            fontFamily: 'AlbertusMTStd, sans-serif',
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            padding: '1rem',
-            }}
-        >
-            <style jsx global>{`
-            @font-face {
-                font-family: 'AlbertusMTStd';
-                src: url('/fonts/AlbertusMTStd.otf') format('opentype');
-                font-display: swap;
-            }
-            `}</style>
+                {/* Overlay content */}
+                <div
+                    style={{
+                        fontFamily: 'AlbertusMTStd, sans-serif',
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        padding: '1rem',
+                        zIndex: 1,
+                    }}
+                >
+                    <style jsx global>{`
+                        @font-face {
+                            font-family: 'AlbertusMTStd';
+                            src: url('/fonts/AlbertusMTStd.otf') format('opentype');
+                            font-display: swap;
+                        }
+                    `}</style>
 
-            <h1 className="text-2xl mb-4 tracking-wide">
-            Loading
-            </h1>
+                    <h1 className="text-2xl mb-4 tracking-wide">
+                        Loading
+                    </h1>
 
-            <div className="w-1/2 max-w-md">
-            <progress
-                id="global-progress-bar"
-                value="0"
-                max="100"
-                className="w-full h-3 appearance-none overflow-hidden rounded bg-white/10 [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white"
-            />
+                    <div className="w-1/2 max-w-md">
+                        <progress
+                            id="global-progress-bar"
+                            value="0"
+                            max="100"
+                            className="w-full h-3 appearance-none overflow-hidden rounded bg-white/10 [&::-webkit-progress-bar]:bg-transparent [&::-webkit-progress-value]:bg-white [&::-moz-progress-bar]:bg-white"
+                        />
+                    </div>
+
+                    <p
+                        id="global-progress-label"
+                        className="mt-4 text-sm text-gray-300"
+                    >
+                        0%
+                    </p>
+                </div>
             </div>
 
-            <p
-            id="global-progress-label"
-            className="mt-4 text-sm text-gray-300"
-            >
-            0%
-            </p>
-        </div>
-        </div>
-
-        <div style={{ width: '100%', height: '100%' }} />
-    </>
+            <div style={{ width: '100%', height: '100%' }} />
+        </>
     );
 };
 
