@@ -14,9 +14,58 @@ const SUN_START_SCALE = 63;
 const SUN_END_SCALE = 65;
 
 const FLARE_START_POS = new THREE.Vector3(-4, -3, -4);
-const FLARE_END_POS = new THREE.Vector3(-48, -8, -80);
+const FLARE_END_POS = new THREE.Vector3(-48, -7, -82);
 const FLARE_START_SCALE = new THREE.Vector3(36, 38, 17);
-const FLARE_END_SCALE = new THREE.Vector3(117, 97, 140);
+const FLARE_END_SCALE = new THREE.Vector3(114, 93, 135);
+
+//Asteroid field (bands are multiples of the sun's measured radius)
+const ASTEROID_MODEL_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+const ASTEROID_HEAVY_TRIS = 8000;
+const TEXTURE_SLOTS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'];
+
+//Where animate() parks the camera, and how much space to leave it
+const CAMERA_HOME = new THREE.Vector3(0, 0, 5);
+const CAMERA_KEEPOUT = 30;
+const SUN_CLEARANCE = 1.14;
+const DRIFT_MAX = 7;
+
+//Ring pattern
+const RING_BAND = [1.5, 2.35];
+const RING_COUNT = 460;
+
+//Scatter pattern
+const SCATTER_BAND = [1.3, 3.2];
+const SCATTER_COUNT = 210;
+
+//Clump pattern
+const CLUMP_BAND = [1.35, 3];
+const CLUMP_RANGE = [8, 13];
+const CLUMP_MEMBERS = [9, 22];
+
+//Foreground rocks, measured off the camera path instead of the sun
+const NEAR_COUNT = 70;
+const NEAR_REACH = [8, 95];
+
+//Single drifting rocks
+const LONER_BAND = [1.2, 3];
+const LONER_COUNT = 4;
+const LONER_SOLITUDE = 46;
+
+//Even spread over a sphere (two random angles would bunch at the poles)
+const randomDirection = (target = new THREE.Vector3()) => {
+  const z = Math.random() * 2 - 1;
+  const angle = Math.random() * Math.PI * 2;
+  const ring = Math.sqrt(1 - z * z);
+  return target.set(Math.cos(angle) * ring, Math.sin(angle) * ring, z);
+};
+
+const perpendicularTo = (axis, target = new THREE.Vector3()) => {
+  const seed = Math.abs(axis.x) > 0.9 ? [0, 1, 0] : [1, 0, 0];
+  target.set(seed[0], seed[1], seed[2]);
+  return target.crossVectors(axis, target).normalize();
+};
+
+const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
 const StarPageScene = ({ star }) => {
   const router = useRouter();
@@ -144,12 +193,21 @@ const StarPageScene = ({ star }) => {
     loader.setDRACOLoader(dracoLoader);
 
     let sunMesh = null;
-    loader.load(star.modleName, (gltf) => {
-      sunMesh = gltf.scene;
-      sunMesh.position.copy(SUN_START_POS);
-      sunMesh.scale.setScalar(SUN_START_SCALE);
-      scene.add(sunMesh);
-    });
+    let disposed = false;
+
+    //Gives back the sun's radius, which the asteroid field is sized against
+    const sunReady = (star.modleName ? loader.loadAsync(star.modleName) : Promise.reject())
+      .then((gltf) => {
+        if (disposed) return 0;
+        sunMesh = gltf.scene;
+        sunMesh.position.copy(SUN_START_POS);
+        sunMesh.scale.setScalar(SUN_START_SCALE);
+        scene.add(sunMesh);
+        //Half-extent, not getBoundingSphere() (that measures the box corner)
+        const size = new THREE.Box3().setFromObject(sunMesh).getSize(new THREE.Vector3());
+        return Math.max(size.x, size.y, size.z) / 2;
+      })
+      .catch(() => 0);
 
     // Solar flare video plane
     const video = document.createElement('video');
@@ -366,6 +424,281 @@ const StarPageScene = ({ star }) => {
     const starArray = getStarfield({ numStars: 500 });
     scene.add(starArray);
 
+    //Asteroid field. Own LoadingManager so the ~46MB of models doesn't hold up
+    //the loading screen, it just fades in when it gets here
+    const asteroidLoader = new GLTFLoader(new THREE.LoadingManager());
+    asteroidLoader.setDRACOLoader(dracoLoader);
+
+    const asteroids = [];
+    const asteroidMeshes = [];
+    const asteroidGeometries = new Set();
+    const asteroidMaterials = new Set();
+    const materialCache = new Map();
+    let asteroidField = null;
+    let fieldFade = 0;
+
+    const disposeAsteroidAssets = () => {
+      asteroidGeometries.forEach((geometry) => geometry.dispose());
+      asteroidMaterials.forEach((material) => {
+        TEXTURE_SLOTS.forEach((slot) => material[slot]?.dispose());
+        material.dispose();
+      });
+      asteroidGeometries.clear();
+      asteroidMaterials.clear();
+      materialCache.clear();
+    };
+
+    //4-13.glb share the same textures, so they share one material too
+    const shareMaterial = (material) => {
+      const key = [
+        material.name,
+        material.map?.image?.width ?? 0,
+        material.map?.image?.height ?? 0,
+        material.normalMap ? 'n' : '',
+        material.roughnessMap ? 'r' : '',
+        material.emissiveMap ? 'e' : '',
+      ].join('|');
+
+      const cached = materialCache.get(key);
+      if (cached) {
+        TEXTURE_SLOTS.forEach((slot) => material[slot]?.dispose());
+        material.dispose();
+        return cached;
+      }
+
+      material.fog = false; //the fog would erase anything out by the sun
+      material.envMapIntensity = 2.5; //nebula fill on the dark sides
+      material.metalness = Math.min(material.metalness ?? 0, 0.2); //some models come in fully metallic
+      material.transparent = true; //just for the fade in
+      material.opacity = 0;
+
+      materialCache.set(key, material);
+      asteroidMaterials.add(material);
+      return material;
+    };
+
+    //Recentres and normalises each model to a radius of 1 (the pack is all
+    //different sizes and some sit way off their own origin, which spins wrong)
+    const prepareModel = (gltf) => {
+      let source = null;
+      gltf.scene.updateMatrixWorld(true);
+      gltf.scene.traverse((child) => {
+        if (!source && child.isMesh) source = child;
+      });
+      if (!source) return null;
+
+      const geometry = source.geometry.clone();
+      geometry.applyMatrix4(source.matrixWorld);
+      geometry.computeBoundingSphere();
+      const { center, radius } = geometry.boundingSphere;
+      geometry.translate(-center.x, -center.y, -center.z);
+      geometry.scale(1 / radius, 1 / radius, 1 / radius);
+      geometry.computeBoundingSphere();
+      geometry.computeBoundingBox();
+      asteroidGeometries.add(geometry);
+
+      const index = geometry.getIndex();
+      return {
+        geometry,
+        material: shareMaterial(source.material),
+        triangles: (index ? index.count : geometry.attributes.position.count) / 3,
+      };
+    };
+
+    const buildField = (sunRadius, models) => {
+      const field = new THREE.Group();
+      field.position.copy(SUN_START_POS);
+      scene.add(field);
+      asteroidField = field;
+
+      //The star lights its own rocks (sits inside the sun so the sun is unaffected)
+      const starLight = new THREE.PointLight(new THREE.Color(star.color1), 1, 0, 1.6);
+      starLight.intensity = Math.pow(sunRadius * 2, 1.6) * 3;
+      field.add(starLight);
+
+      const camPath = new THREE.Line3(
+        CAMERA_HOME.clone().sub(SUN_START_POS),
+        CAMERA_HOME.clone().sub(SUN_END_POS)
+      );
+      const nearest = new THREE.Vector3();
+      const minCentre = sunRadius * SUN_CLEARANCE;
+
+      //Rejects anything sitting on the camera's scroll path or inside the sun.
+      //Drift is capped at DRIFT_MAX so counting it here keeps rocks clear forever
+      const isClear = (pos, bodyRadius) => {
+        const margin = bodyRadius + DRIFT_MAX;
+        if (pos.length() < minCentre + margin) return false;
+        camPath.closestPointToPoint(pos, true, nearest);
+        return nearest.distanceTo(pos) > CAMERA_KEEPOUT + margin;
+      };
+
+      const findSpot = (propose, bodyRadius, attempts = 48, alsoValid = null) => {
+        for (let i = 0; i < attempts; i++) {
+          const pos = propose();
+          if (isClear(pos, bodyRadius) && (!alsoValid || alsoValid(pos))) return pos;
+        }
+        return null;
+      };
+
+      const onBand = (band, target = new THREE.Vector3()) =>
+        randomDirection(target).multiplyScalar(sunRadius * THREE.MathUtils.randFloat(band[0], band[1]));
+
+      //The 54k triangle model is kept out of the crowd, loners can use anything
+      const light = models.filter((model) => model.triangles <= ASTEROID_HEAVY_TRIS);
+      const crowd = light.length ? light : models;
+
+      //Records a rock. The meshes get built as InstancedMesh once placement is done
+      const spawn = (model, pos, bodyRadius) => {
+        //Constant spin about one body axis loops seamlessly, bigger rocks turn
+        //slower, and some get a second axis so they tumble like the real ones
+        const spinRate = THREE.MathUtils.randFloat(0.05, 0.34) / (1 + bodyRadius * 0.12);
+        const driftA = THREE.MathUtils.randFloat(1, DRIFT_MAX * 0.66);
+        const driftAxisA = randomDirection();
+
+        asteroids.push({
+          model,
+          base: pos.clone(),
+          scale: bodyRadius,
+          quaternion: new THREE.Quaternion().setFromEuler(
+            new THREE.Euler(
+              Math.random() * Math.PI * 2,
+              Math.random() * Math.PI * 2,
+              Math.random() * Math.PI * 2
+            )
+          ),
+          spinAxis: randomDirection(),
+          spinRate,
+          tumbleAxis: Math.random() < 0.45 ? randomDirection() : null,
+          tumbleRate: spinRate * 0.28,
+          driftAxisA,
+          driftAxisB: perpendicularTo(driftAxisA),
+          driftA,
+          driftB: driftA * 0.5, //driftA + driftB stays under DRIFT_MAX, isClear() counts on it
+          driftFreqA: (Math.PI * 2) / THREE.MathUtils.randFloat(19, 68),
+          driftFreqB: (Math.PI * 2) / THREE.MathUtils.randFloat(23, 81),
+          driftPhase: Math.random() * Math.PI * 2,
+        });
+      };
+
+      //Pattern 1: planetary ring. Normal is tilted ~60 deg off the sun->camera
+      //axis, face on reads as a circle and edge on as a line
+      const viewAxis = camPath.end.clone().normalize();
+      const ringNormal = viewAxis
+        .clone()
+        .applyAxisAngle(perpendicularTo(viewAxis), THREE.MathUtils.degToRad(THREE.MathUtils.randFloat(56, 72)))
+        .applyAxisAngle(viewAxis, Math.random() * Math.PI * 2)
+        .normalize();
+      const ringU = perpendicularTo(ringNormal);
+      const ringV = new THREE.Vector3().crossVectors(ringNormal, ringU).normalize();
+
+      for (let i = 0; i < RING_COUNT; i++) {
+        //Exponent keeps the big ones rare, rings are mostly fine rubble
+        const bodyRadius = 0.45 + Math.pow(Math.random(), 3) * 4.3;
+        const pos = findSpot(() => {
+          const radius = sunRadius * THREE.MathUtils.randFloat(RING_BAND[0], RING_BAND[1]);
+          const angle = Math.random() * Math.PI * 2;
+          return new THREE.Vector3()
+            .addScaledVector(ringU, Math.cos(angle) * radius)
+            .addScaledVector(ringV, Math.sin(angle) * radius)
+            .addScaledVector(ringNormal, THREE.MathUtils.randFloatSpread(sunRadius * 0.1));
+        }, bodyRadius);
+        if (pos) spawn(pick(crowd), pos, bodyRadius);
+      }
+
+      //Pattern 2: loose scatter through the whole shell
+      for (let i = 0; i < SCATTER_COUNT; i++) {
+        const bodyRadius = 0.4 + Math.pow(Math.random(), 2.4) * 3.6;
+        const pos = findSpot(() => onBand(SCATTER_BAND), bodyRadius);
+        if (pos) spawn(pick(crowd), pos, bodyRadius);
+      }
+
+      //Pattern 3: small clumps. Whole clump volume is cleared at once so a
+      //cluster never straddles the keep out tube
+      const clumps = THREE.MathUtils.randInt(CLUMP_RANGE[0], CLUMP_RANGE[1]);
+      for (let c = 0; c < clumps; c++) {
+        const spread = THREE.MathUtils.randFloat(6, 16);
+        const centre = findSpot(() => onBand(CLUMP_BAND), spread + 3);
+        if (!centre) continue;
+
+        const members = THREE.MathUtils.randInt(CLUMP_MEMBERS[0], CLUMP_MEMBERS[1]);
+        for (let i = 0; i < members; i++) {
+          const bodyRadius = 0.3 + Math.pow(Math.random(), 2.6) * 2.3;
+          const pos = findSpot(
+            () => centre.clone().addScaledVector(randomDirection(), Math.cbrt(Math.random()) * spread),
+            bodyRadius,
+            16
+          );
+          if (pos) spawn(pick(crowd), pos, bodyRadius);
+        }
+      }
+
+      //Pattern 4: foreground rubble
+      const nearAnchor = new THREE.Vector3();
+      for (let i = 0; i < NEAR_COUNT; i++) {
+        const bodyRadius = 0.35 + Math.pow(Math.random(), 2.8) * 3.3;
+        const pos = findSpot(() => {
+          camPath.at(Math.random(), nearAnchor);
+          const reach =
+            CAMERA_KEEPOUT + bodyRadius + DRIFT_MAX +
+            THREE.MathUtils.randFloat(NEAR_REACH[0], NEAR_REACH[1]);
+          return nearAnchor.clone().addScaledVector(randomDirection(), reach);
+        }, bodyRadius);
+        if (pos) spawn(pick(crowd), pos, bodyRadius);
+      }
+
+      // Pattern 5: large high poly models
+      const taken = asteroids.map((rock) => rock.base);
+      for (let i = 0; i < LONER_COUNT; i++) {
+        const bodyRadius = THREE.MathUtils.randFloat(7, 13.5);
+        const pos = findSpot(
+          () => onBand(LONER_BAND),
+          bodyRadius,
+          64,
+          (candidate) => taken.every((other) => other.distanceTo(candidate) > LONER_SOLITUDE)
+        );
+        if (pos) {
+          spawn(pick(models), pos, bodyRadius);
+          taken.push(pos.clone());
+        }
+      }
+
+      //One InstancedMesh per model instead of a mesh per rock, so a few hundred
+      //rocks cost ~13 draw calls. Each rock remembers its slot for the animation
+      models.forEach((model) => {
+        const members = asteroids.filter((rock) => rock.model === model);
+        if (!members.length) return;
+
+        const instanced = new THREE.InstancedMesh(model.geometry, model.material, members.length);
+        instanced.frustumCulled = false; //matrices change every frame
+        members.forEach((rock, index) => {
+          rock.instanced = instanced;
+          rock.index = index;
+        });
+        field.add(instanced);
+        asteroidMeshes.push(instanced);
+      });
+    };
+
+    Promise.all([
+      sunReady,
+      Promise.all(
+        ASTEROID_MODEL_IDS.map((id) =>
+          asteroidLoader
+            .loadAsync(`/models/astroid-models/${id}.glb`)
+            .then(prepareModel)
+            .catch(() => null)
+        )
+      ),
+    ]).then(([sunRadius, models]) => {
+      const usable = models.filter(Boolean);
+      // Without a sun there is nothing to orbit, so skip the field entirely.
+      if (disposed || !sunRadius || !usable.length) {
+        disposeAsteroidAssets();
+        return;
+      }
+      buildField(sunRadius, usable);
+    });
+
     // Subtle mouse-look parallax
     let mouseX = 0;
     let mouseY = 0;
@@ -388,12 +721,51 @@ const StarPageScene = ({ star }) => {
     handleScroll();
 
     let frameId;
+    const clock = new THREE.Clock();
+
+    //Scratch objects for the asteroid matrices, reused every frame
+    const spinStep = new THREE.Quaternion();
+    const rockPos = new THREE.Vector3();
+    const rockScale = new THREE.Vector3();
+    const rockMatrix = new THREE.Matrix4();
+
     function animate() {
+      const delta = Math.min(clock.getDelta(), 0.05); //stops a jump after a backgrounded tab
+      const elapsed = clock.elapsedTime;
       scrollCurrent += (scrollTarget - scrollCurrent) * 0.07;
 
       if (sunMesh) {
         sunMesh.position.lerpVectors(SUN_START_POS, SUN_END_POS, scrollCurrent);
         sunMesh.scale.setScalar(THREE.MathUtils.lerp(SUN_START_SCALE, SUN_END_SCALE, scrollCurrent));
+      }
+
+      if (asteroidField) {
+        asteroidField.position.lerpVectors(SUN_START_POS, SUN_END_POS, scrollCurrent);
+
+        if (fieldFade < 1) {
+          fieldFade = Math.min(1, fieldFade + delta / 1.4);
+          const eased = fieldFade * fieldFade * (3 - 2 * fieldFade);
+          asteroidMaterials.forEach((material) => {
+            material.opacity = eased;
+            if (fieldFade === 1) material.transparent = false; //back to the opaque pass
+          });
+        }
+
+        asteroids.forEach((rock) => {
+          rock.quaternion.multiply(spinStep.setFromAxisAngle(rock.spinAxis, rock.spinRate * delta));
+          if (rock.tumbleAxis) {
+            rock.quaternion.multiply(spinStep.setFromAxisAngle(rock.tumbleAxis, rock.tumbleRate * delta));
+          }
+          rockPos
+            .copy(rock.base)
+            .addScaledVector(rock.driftAxisA, Math.sin(elapsed * rock.driftFreqA + rock.driftPhase) * rock.driftA)
+            .addScaledVector(rock.driftAxisB, Math.cos(elapsed * rock.driftFreqB + rock.driftPhase) * rock.driftB);
+          rockScale.setScalar(rock.scale);
+          rock.instanced.setMatrixAt(rock.index, rockMatrix.compose(rockPos, rock.quaternion, rockScale));
+        });
+        asteroidMeshes.forEach((mesh) => {
+          mesh.instanceMatrix.needsUpdate = true;
+        });
       }
 
       flarePlane.position.lerpVectors(FLARE_START_POS, FLARE_END_POS, scrollCurrent);
@@ -413,6 +785,7 @@ const StarPageScene = ({ star }) => {
     animate();
 
     return () => {
+      disposed = true; // stops an in-flight load from populating a torn-down scene
       cancelAnimationFrame(frameId);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
@@ -423,6 +796,11 @@ const StarPageScene = ({ star }) => {
       flareGeometry.dispose();
       flareMaterial.dispose();
       dracoLoader.dispose();
+
+      asteroidMeshes.forEach((mesh) => mesh.dispose());
+      asteroidMeshes.length = 0;
+      asteroids.length = 0;
+      disposeAsteroidAssets(); //the traverse below misses the shared textures
 
       scene.traverse((object) => {
         if (object.isMesh) {
