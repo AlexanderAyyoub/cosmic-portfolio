@@ -7,6 +7,7 @@ import { FaGithub } from "react-icons/fa";
 interface Project {
   title: string;
   description: string;
+  tech?: string;
   image?: string;
   link: string;
 }
@@ -78,6 +79,11 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
         >
           {project.title}
         </CardTitle>
+        {project.tech && (
+          <p className="text-sm italic" style={{ color: '#C2C8B8' }}>
+            {project.tech}
+          </p>
+        )}
       </CardHeader>
 
       {hasImages && (

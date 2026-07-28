@@ -75,9 +75,13 @@ const ResumePageBackground = () => {
 
     camera.position.set(0, 0, 0);
 
-    let mouseX = 0;
-    let mouseY = 0;
+ 
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
     const sensitivity = 0.05;
+    const smoothing = 0.06;
 
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -90,8 +94,8 @@ const ResumePageBackground = () => {
     // Handling camera move for mouse
     const handleMouseMove = (event) => {
       if (isTouching) return;
-      mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-      mouseY = (event.clientY / window.innerHeight) * 2 - 1;
+      targetX = (event.clientX / window.innerWidth) * 2 - 1;
+      targetY = (event.clientY / window.innerHeight) * 2 - 1;
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -102,8 +106,8 @@ const ResumePageBackground = () => {
       isTouching = true;
       touchStartX = event.touches[0].clientX;
       touchStartY = event.touches[0].clientY;
-      touchBaseX = mouseX;
-      touchBaseY = mouseY;
+      touchBaseX = targetX;
+      touchBaseY = targetY;
     };
 
     const handleTouchMove = (event) => {
@@ -115,8 +119,8 @@ const ResumePageBackground = () => {
       const deltaX = touchX - touchStartX;
       const deltaY = touchY - touchStartY;
 
-      mouseX = clamp(touchBaseX + deltaX / (window.innerWidth * .1), -1, 1);
-      mouseY = clamp(touchBaseY + deltaY / (window.innerHeight * .1 ), -1, 1);
+      targetX = clamp(touchBaseX + deltaX / (window.innerWidth * .1), -1, 1);
+      targetY = clamp(touchBaseY + deltaY / (window.innerHeight * .1 ), -1, 1);
     };
 
     const handleTouchEnd = () => {
@@ -211,17 +215,15 @@ const ResumePageBackground = () => {
     
 
     function animate() {
-      if (!isTouching) {
-        mouseX += (0 - mouseX) * 0.03;
-        mouseY += (0 - mouseY) * 0.03;
-      }
+      currentX += (targetX - currentX) * smoothing;
+      currentY += (targetY - currentY) * smoothing;
 
-      const targetX = mouseX * sensitivity;
-      const targetY = mouseY * sensitivity;
+      const angleX = currentX * sensitivity;
+      const angleY = currentY * sensitivity;
 
-      camera.position.x = Math.sin(targetX) * 10;
-      camera.position.z = Math.cos(targetX) * 10;
-      camera.position.y = targetY * 5;
+      camera.position.x = Math.sin(angleX) * 10;
+      camera.position.z = Math.cos(angleX) * 10;
+      camera.position.y = angleY * 5;
 
       camera.lookAt(new THREE.Vector3(0, 0, 0));
 

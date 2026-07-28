@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
@@ -862,8 +862,10 @@ const StarPageScene = ({ star }) => {
           className="absolute top-6 right-6 md:top-10 md:right-10 text-right"
           style={{
             fontFamily: 'AlbertusMTStd, serif',
-            color: titleColor,
-            opacity: revealed ? 0 : 0.8,
+            color: `color-mix(in srgb, ${bodyColor} 55%, transparent)`,
+            WebkitTextStrokeWidth: '0.2px',
+            WebkitTextStrokeColor: titleColor,
+            opacity: revealed ? 0 : 1,
             transition: 'opacity 0.6s ease',
           }}
         >

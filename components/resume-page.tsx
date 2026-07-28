@@ -7,7 +7,7 @@ import ProjectCard from "@/components/project-cards";
 import projectsData from "@/public/projects.json";
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react'
-import { FaGithub } from "react-icons/fa";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 
 
 export default function ResumePage() {
@@ -94,6 +94,18 @@ return (
               <FaGithub size={16} />
               <span>github.com/AlexanderAyyoub</span>
             </a>
+
+            <span className="opacity-60">|</span>
+
+            <a
+              href="https://www.linkedin.com/in/alexander-ayyoub/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-[#C2C8B8] hover:text-[#EEE8DC] transition-colors"
+            >
+              <FaLinkedin size={16} />
+              <span>linkedin.com/in/alexander-ayyoub</span>
+            </a>
           </div>
         </header>
 
@@ -135,13 +147,13 @@ return (
                       textShadow: strongShadow,
                     }}
                   >
-                    AI Research & Workflow Automation Consultant
+                    Software Engineer (Contract)
                   </CardTitle>
                   <p
                     className="text-sm md:text-base"
                     style={{ color: '#C2C8B8', textShadow: strongShadow }}
                   >
-                    Cynthetica Solutions | Nov. 2025 – Present | Morganville, NJ
+                    Synthetica Solutions | Nov. 2025 – Present | Monroe, NJ
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -149,8 +161,15 @@ return (
                     className="list-disc pl-5 space-y-2 text-sm md:text-base"
                     style={{ color: '#C2C8B8' }}
                   >
-                    <li>Tested AI prompting and workflow strategies to surface useful internal insights.</li>
-                    <li>Built automation systems that reduced manual overhead across client processes.</li>
+                    <li>
+                      Drove AI-driven chemical formulation testing using locally hosted models and databases on a
+                      custom-built NAS server, keeping all experimentation on-prem and independent of external APIs.
+                    </li>
+                    <li>
+                      Built a computer vision defect detection program using pixel-level color analysis to identify and
+                      circle imperfections in gummy products from live camera input, automating quality control
+                      reporting for the production team.
+                    </li>
                   </ul>
                 </CardContent>
               </Card>
@@ -171,7 +190,7 @@ return (
                       textShadow: strongShadow,
                     }}
                   >
-                    Contract Data Automation Developer
+                    Data Automation Developer (Contract)
                   </CardTitle>
                   <p
                     className="text-sm md:text-base"
@@ -185,8 +204,16 @@ return (
                     className="list-disc pl-5 space-y-2 text-sm md:text-base"
                     style={{ color: '#C2C8B8' }}
                   >
-                    <li>Built a Python and Playwright scraping pipeline for 77,000+ SEC filing records.</li>
-                    <li>Refined output structure and coverage through direct client feedback.</li>
+                    <li>
+                      Engineered a Python and Playwright pipeline to extract firm-affiliation data from SEC government
+                      filings, automating collection across 77,000+ records to help recruiters evaluate top portfolio
+                      manager candidates.
+                    </li>
+                    <li>
+                      Delivered production-ready tooling through iterative client feedback cycles, refining data
+                      structure, field coverage, and CSV export format to precisely match recruiter workflow
+                      requirements.
+                    </li>
                   </ul>
                 </CardContent>
               </Card>
@@ -221,8 +248,14 @@ return (
                     className="list-disc pl-5 space-y-2 text-sm md:text-base"
                     style={{ color: '#C2C8B8' }}
                   >
-                    <li>Managed overnight front desk, reconciliation, and facilities decisions independently.</li>
-                    <li>Resolved guest and operations issues during unsupervised overnight shifts.</li>
+                    <li>
+                      Sole overnight operator managing all front-desk operations, financial reconciliation, and
+                      facilities decisions across 11PM–7AM shifts with zero supervisory support.
+                    </li>
+                    <li>
+                      Independently resolved guest issues, de-escalated conflicts, and made on-the-spot operational
+                      decisions — consistently maintaining service standards under pressure.
+                    </li>
                   </ul>
                 </CardContent>
               </Card>
@@ -361,7 +394,7 @@ return (
                       Frameworks & Tools
                     </p>
                     <p className="text-sm md:text-base" style={{ color: '#C2C8B8' }}>
-                      React, Next.js, Three.js, PyQt5, Tailwind CSS, Playwright, Drizzle ORM, Git, Vercel, Blender, Steamworks API
+                      React, Next.js, Three.js, PyQt5, Tailwind CSS, Playwright, Ollama, Docker, Drizzle ORM, Stable Diffusion, Git, Vercel, Blender, Steamworks API
                     </p>
                   </div>
 
@@ -373,7 +406,7 @@ return (
                       Concepts
                     </p>
                     <p className="text-sm md:text-base" style={{ color: '#C2C8B8' }}>
-                      Browser automation, data extraction, full-stack development, desktop apps, 3D rendering and shaders
+                      Browser automation, data extraction, full-stack development, desktop apps, computer vision, locally hosted LLMs, 3D rendering and shaders
                     </p>
                   </div>
                 </CardContent>

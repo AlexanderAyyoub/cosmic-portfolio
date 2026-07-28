@@ -1,19 +1,22 @@
 [
   {
     "title": "Liquid Stress",
-    "description": "Shipped a solo productivity desktop app to Steam achieving 95.5K impressions, 24K page visits, a 14.5% click-through rate, and 300+ downloads. ",
+    "tech": "Python, PyQt5, Blender, Steamworks API",
+    "description": "Solo-developed and shipped a productivity desktop suite to Steam, achieving 95.5K impressions, 24K visits, a 14.5% click-through rate, and 300+ downloads with no marketing budget. Architected a PyQt5 GUI with customizable timers, bar graph and pie chart analytics, OS-level goal overlays with progress bars, and hand-animated 3D Blender assets — optimized for minimal CPU footprint.",
     "link": "https://github.com/yourusername/liquid-stress",
     "image": "/images/liquidStress/1.webp, /images/liquidStress/2.webp,/images/liquidStress/3.webp,/images/liquidStress/4.webp"
   },
   {
     "title": "Cosmic Portfolio",
-    "description": "A full-stack interactive portfolio where projects appear as navigable stars in a Three.js galaxy with shaders, post-processing, and a secure admin panel.",
+    "tech": "Next.js, React, Three.js, Tailwind CSS, Drizzle ORM, PostgreSQL, Vercel",
+    "description": "Built a full-stack developer portfolio where projects appear as navigable stars inside a Three.js galaxy, featuring custom GLSL shaders, post-processing effects, and dynamic scene generation driven by a PostgreSQL database. Implemented a secure admin panel for live project management, integrated Drizzle ORM for database access, and deployed on Vercel via Next.js App Router — with all 3D assets modeled in Blender.",
     "link": "https://github.com/yourusername/cosmic-portfolio",
     "image": "/images/cosmicPortfolio/1.webp, /images/cosmicPortfolio/2.webp, /images/cosmicPortfolio/3.webp, /images/cosmicPortfolio/4.webp"
   },
   {
     "title": "SEC Financial Fund Scraper",
-    "description": "A headless Playwright automation tool that crawls 77,000+ adviserinfo.sec.gov pages with retry logic, backoff handling, and resume-safe CSV deduplication.",
+    "tech": "Python, Playwright, Async I/O, CSV Pipeline",
+    "description": "Built a headless Playwright automation tool to crawl 77,000+ pages on adviserinfo.sec.gov, with automatic retry logic, rate-limit backoff, and resume-safe CSV deduplication. Parsed and normalized JSON API responses into structured datasets enabling recruiters to cross-reference candidate employment history against top-tier financial institutions.",
     "link": "https://github.com/yourusername/sec-financial-fund-scraper",
     "image": ""
   }
