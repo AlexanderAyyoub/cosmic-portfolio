@@ -2,8 +2,17 @@
 import { useEffect } from 'react';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
+import { EffectComposer } from 'three/examples/jsm/Addons.js';
+import { RenderPass } from 'three/examples/jsm/Addons.js';
+import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { OutputPass } from 'three/examples/jsm/Addons.js';
 import * as THREE from 'three';
 import getStarfield from './getStarfield.js';
+
+//Post processing
+const BLOOM_STRENGTH = 0.2;
+const BLOOM_RADIUS = 0.14;
+const BLOOM_THRESHOLD = 0.1;
 
 const ResumePageBackground = () => {
   useEffect(() => {
@@ -26,6 +35,20 @@ const ResumePageBackground = () => {
     if (container) {
       container.appendChild(renderer.domElement);
     }
+
+    //Post processing
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(windowW, windowH),
+      BLOOM_STRENGTH,
+      BLOOM_RADIUS,
+      BLOOM_THRESHOLD
+    );
+    composer.addPass(bloomPass);
+
+    composer.addPass(new OutputPass());
 
     // Test sphere
     const sphereGeometry = new THREE.SphereGeometry(15, 64, 64);
@@ -138,6 +161,8 @@ const ResumePageBackground = () => {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(window.devicePixelRatio);
+      composer.setPixelRatio(window.devicePixelRatio);
+      composer.setSize(window.innerWidth, window.innerHeight);
     };
 
     window.addEventListener('resize', handleResize);
@@ -230,7 +255,7 @@ const ResumePageBackground = () => {
       sphere.rotation.x += 0.005;
       sphere.rotation.y += 0.01;
 
-      renderer.render(scene, camera);
+      composer.render();
     }
 
     renderer.setAnimationLoop(animate);
@@ -256,6 +281,9 @@ const ResumePageBackground = () => {
       sphereGeometry.dispose();
       sphereMaterial.dispose();
       dracoLoader.dispose();
+
+      bloomPass.dispose(); //composer.dispose() only covers its own buffers
+      composer.dispose();
 
       renderer.setAnimationLoop(null);
       renderer.dispose();

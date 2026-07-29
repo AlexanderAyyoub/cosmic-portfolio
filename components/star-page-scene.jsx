@@ -1,8 +1,13 @@
 ﻿'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import { DRACOLoader } from 'three/examples/jsm/Addons.js';
 import { EXRLoader } from 'three/examples/jsm/Addons.js';
+import { EffectComposer } from 'three/examples/jsm/Addons.js';
+import { RenderPass } from 'three/examples/jsm/Addons.js';
+import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { AfterimagePass } from 'three/examples/jsm/Addons.js';
+import { OutputPass } from 'three/examples/jsm/Addons.js';
 import { useRouter } from 'next/navigation';
 import * as THREE from 'three';
 import getStarfield from './getStarfield.js';
@@ -22,6 +27,12 @@ const FLARE_END_SCALE = new THREE.Vector3(114, 93, 135);
 const ASTEROID_MODEL_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 const ASTEROID_HEAVY_TRIS = 8000;
 const TEXTURE_SLOTS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'];
+
+//Post-processing
+const BLOOM_STRENGTH = 0.4;
+const BLOOM_RADIUS = 0.14;
+const BLOOM_THRESHOLD = 0.4;
+const AFTERIMAGE_DAMP = 0.6;
 
 //Where animate() parks the camera, and how much space to leave it
 const CAMERA_HOME = new THREE.Vector3(0, 0, 5);
@@ -70,6 +81,15 @@ const pick = (list) => list[Math.floor(Math.random() * list.length)];
 const StarPageScene = ({ star }) => {
   const router = useRouter();
   const [revealed, setRevealed] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  const contentRef = useRef(null);
+
+  // Scroll position where the write up starts, the snap lands here
+  const contentTop = () => (
+    contentRef.current
+      ? contentRef.current.getBoundingClientRect().top + window.scrollY
+      : window.innerHeight
+  );
 
   const warpStars = useMemo(() => (
     Array.from({ length: 350 }, () => ({
@@ -119,7 +139,7 @@ const StarPageScene = ({ star }) => {
 
     const handleWheel = (event) => {
       if (isSnapping || event.deltaY <= 0) return;
-      const target = window.innerHeight * 1.1;
+      const target = contentTop();
       if (window.scrollY < target - 10) {
         event.preventDefault();
         isSnapping = true;
@@ -134,7 +154,24 @@ const StarPageScene = ({ star }) => {
     return () => window.removeEventListener('wheel', handleWheel);
   }, []);
 
-  // Three.js background: starfield + nebula + sun/flare, tied to scroll
+  // Escape closes the lightbox, and the page stays put while it is open
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setLightboxIndex(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [lightboxIndex]);
+
   useEffect(() => {
     const loadingManager = new THREE.LoadingManager();
 
@@ -178,11 +215,31 @@ const StarPageScene = ({ star }) => {
 
     scene.fog = new THREE.FogExp2(star.color1, 0.01);
 
+    //Post processing
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(windowW, windowH),
+      BLOOM_STRENGTH,
+      BLOOM_RADIUS,
+      BLOOM_THRESHOLD
+    );
+    composer.addPass(bloomPass);
+
+    const afterimagePass = new AfterimagePass(AFTERIMAGE_DAMP);
+    composer.addPass(afterimagePass);
+
+    composer.addPass(new OutputPass());
+
     const handleResize = () => {
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(pixelRatio);
+      composer.setPixelRatio(pixelRatio);
+      composer.setSize(window.innerWidth, window.innerHeight);
     };
     window.addEventListener('resize', handleResize);
 
@@ -421,7 +478,7 @@ const StarPageScene = ({ star }) => {
     });
 
     // Starfield
-    const starArray = getStarfield({ numStars: 500 });
+    const starArray = getStarfield({ numStars: 1000 });
     scene.add(starArray);
 
     //Asteroid field. Own LoadingManager so the ~46MB of models doesn't hold up
@@ -523,8 +580,7 @@ const StarPageScene = ({ star }) => {
       const nearest = new THREE.Vector3();
       const minCentre = sunRadius * SUN_CLEARANCE;
 
-      //Rejects anything sitting on the camera's scroll path or inside the sun.
-      //Drift is capped at DRIFT_MAX so counting it here keeps rocks clear forever
+      
       const isClear = (pos, bodyRadius) => {
         const margin = bodyRadius + DRIFT_MAX;
         if (pos.length() < minCentre + margin) return false;
@@ -779,7 +835,7 @@ const StarPageScene = ({ star }) => {
       camera.position.y = targetY * 2;
       camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-      renderer.render(scene, camera);
+      composer.render(delta);
       frameId = requestAnimationFrame(animate);
     }
     animate();
@@ -796,6 +852,10 @@ const StarPageScene = ({ star }) => {
       flareGeometry.dispose();
       flareMaterial.dispose();
       dracoLoader.dispose();
+
+      bloomPass.dispose(); //composer.dispose() only covers its own buffers
+      afterimagePass.dispose();
+      composer.dispose();
 
       asteroidMeshes.forEach((mesh) => mesh.dispose());
       asteroidMeshes.length = 0;
@@ -876,7 +936,8 @@ const StarPageScene = ({ star }) => {
       </div>
 
       <div
-        className="relative z-10 px-6 md:px-10 lg:px-14 pb-24"
+        ref={contentRef}
+        className="relative z-10 px-6 md:px-10 lg:px-14 pt-10 pb-24"
         style={{
           opacity: revealed ? 1 : 0,
           transform: revealed ? 'translateY(0)' : 'translateY(24px)',
@@ -916,32 +977,31 @@ const StarPageScene = ({ star }) => {
               </div>
             </div>
 
+            {/* Screenshots keep their own shape, click one to open it full size */}
             {imageUrls.length > 0 && (
               <div
-                className="relative overflow-hidden rounded-[28px] aspect-square"
+                className="relative overflow-hidden rounded-[28px]"
                 style={{
                   background: 'rgba(0, 14, 20, 0.7)',
                   backdropFilter: 'blur(7px)',
                   WebkitBackdropFilter: 'blur(7px)',
                 }}
               >
-                <div
-                  className={`h-full w-full p-3 grid gap-2 ${
-                    imageUrls.length > 1 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-1'
-                  }`}
-                >
-                  {imageUrls.slice(0, 4).map((url, index) => (
-                    <div
+                <div className="w-full p-3 flex flex-col gap-2">
+                  {imageUrls.map((url, index) => (
+                    <button
                       key={index}
-                      className="rounded-sm border overflow-hidden"
+                      type="button"
+                      onClick={() => setLightboxIndex(index)}
+                      className="rounded-sm border overflow-hidden block cursor-zoom-in transition-transform duration-300 hover:scale-[1.02]"
                       style={{ borderColor: 'rgba(238, 232, 220, 0.14)' }}
                     >
                       <img
                         src={url}
                         alt={`${star.name} screenshot ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        className="block mx-auto max-w-full h-auto"
                       />
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -949,6 +1009,40 @@ const StarPageScene = ({ star }) => {
           </div>
         </div>
       </div>
+
+      {/* Lightbox, capped to the viewport so nothing gets cropped */}
+      {lightboxIndex !== null && (
+        <div
+          onClick={() => setLightboxIndex(null)}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-6 cursor-zoom-out"
+          style={{
+            background: 'rgba(0, 4, 8, 0.92)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+          }}
+        >
+          <img
+            src={imageUrls[lightboxIndex]}
+            alt={`${star.name} screenshot ${lightboxIndex + 1}`}
+            onClick={(event) => event.stopPropagation()}
+            className="max-w-[95vw] max-h-[90vh] w-auto h-auto object-contain rounded-lg cursor-default"
+            style={{ border: `1px solid ${titleColor}` }}
+          />
+
+          <button
+            onClick={() => setLightboxIndex(null)}
+            className="absolute top-6 right-6 px-5 py-3 rounded-lg transition-all duration-300 hover:scale-105 active:scale-95"
+            style={{
+              backgroundColor: '#000E14',
+              border: `2px solid ${titleColor}`,
+              fontFamily: 'AlbertusMTStd, serif',
+              color: titleColor,
+            }}
+          >
+            Close
+          </button>
+        </div>
+      )}
 
       <button
         onClick={handleGoBack}

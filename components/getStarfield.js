@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export default function getStarfield({ numStars = 5000 } = {}) {
+export default function getStarfield({ numStars = 8000, emission = 5 } = {}) {
   function randomSpherePoint() {
     const radius = Math.random() * 60 + 60;
     const u = Math.random();
@@ -35,11 +35,16 @@ export default function getStarfield({ numStars = 5000 } = {}) {
   const mat = new THREE.PointsMaterial({
     size: 0.2,
     vertexColors: true,
+    color: new THREE.Color().setScalar(emission), 
     map: new THREE.TextureLoader().load(
       "/textures/circle.png"
     ),
-    
+    blending: THREE.AdditiveBlending,
+    fog: false, 
+    depthTest: false, 
+    depthWrite: false,
   });
   const points = new THREE.Points(geo, mat);
+  points.renderOrder = -1; 
   return points;
 }
